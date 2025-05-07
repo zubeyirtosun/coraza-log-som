@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from data_processing import preprocess_data, handle_missing_data, train_som
 from visualizations import (show_summary_table, show_visualizations, handle_meta_clustering, 
-                           handle_neuron_details, handle_anomaly_detection)
+                           handle_neuron_details, handle_anomaly_detection, show_som_validation, show_meta_clustering_validation)
 from session_state import initialize_session_state, reset_session_state
 from text_content import get_main_description, get_som_description, get_user_gains
 
@@ -102,6 +102,8 @@ if st.session_state.som is not None:
     handle_neuron_details()  # Yeni eklenen nöron detayları bölümü
     handle_anomaly_detection()  # Yeni eklenen anomali tespiti bölümü
     handle_meta_clustering()
+    show_som_validation()
+    show_meta_clustering_validation()
 
 if st.button("Analizi Sıfırla"):
     reset_session_state()

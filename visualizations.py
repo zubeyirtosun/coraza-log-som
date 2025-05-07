@@ -282,3 +282,161 @@ def handle_anomaly_detection():
     else:
         st.dataframe(anomalies[['transaction.client_port', 'transaction.request.uri', 
                                'transaction.is_interrupted', 'quantization_error']])
+
+def show_som_validation():
+    st.subheader("SOM Doğrulama Metrikleri")
+    with st.expander("Bu Metrikler Ne Anlama Geliyor?"):
+        st.write("""
+        Bu bölüm, SOM modelinin performansını değerlendirmek için çeşitli metrikler sunar:
+        - **Toplam Quantization Error**: Tüm veri noktalarının BMU'larına olan ortalama uzaklığı
+        - **Topografik Error**: SOM'un topografik yapısını koruma yeteneği
+        - **Silhouette Skoru**: Kümeleme kalitesini ölçer
+        """)
+    
+    if st.session_state.som is None or st.session_state.X is None:
+        st.warning("SOM modeli henüz eğitilmemiş.")
+        return
+    
+    # 1. Toplam Quantization Error
+    total_qe = st.session_state.som.quantization_error(st.session_state.X)
+    st.metric("Toplam Quantization Error", f"{total_qe:.4f}")
+    
+    # 2. Topografik Error
+    topo_error = calculate_topographic_error(st.session_state.som, st.session_state.X)
+    st.metric("Topografik Error", f"{topo_error:.4f}")
+    
+    # 3. Silhouette Skoru
+    silhouette_avg = calculate_silhouette_score(st.session_state.X, st.session_state.df[['bmu_x', 'bmu_y']])
+    st.metric("Silhouette Skoru", f"{silhouette_avg:.4f}")
+    
+    # 4. Görselleştirme
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=['Quantization Error', 'Topografik Error', 'Silhouette Skoru'],
+        y=[total_qe, topo_error, silhouette_avg],
+        text=[f"{total_qe:.4f}", f"{topo_error:.4f}", f"{silhouette_avg:.4f}"],
+        textposition='auto',
+    ))
+    fig.update_layout(title="SOM Doğrulama Metrikleri")
+    st.plotly_chart(fig)
+
+def calculate_topographic_error(som, data):
+    """Topografik error hesaplama"""
+    error = 0
+    for x in data:
+        w1 = som.winner(x)
+        w2 = find_second_best_matching_unit(som, x)
+        if not are_neighbors(som, w1, w2):
+            error += 1
+    return error / len(data)
+
+def find_second_best_matching_unit(som, x):
+    """İkinci en iyi eşleşen birimi bul"""
+    # Tüm nöronlar için mesafeleri hesapla
+    distances = np.zeros((som.get_weights().shape[0], som.get_weights().shape[1]))
+    for i in range(som.get_weights().shape[0]):
+        for j in range(som.get_weights().shape[1]):
+            distances[i, j] = np.linalg.norm(x - som.get_weights()[i, j])
+    
+    # En iyi eşleşen birimi bul
+    best_matching_unit = som.winner(x)
+    
+    # En iyi eşleşen birimin mesafesini çok büyük bir sayı yap
+    distances[best_matching_unit] = float('inf')
+    
+    # İkinci en iyi eşleşen birimi bul
+    second_best = np.unravel_index(np.argmin(distances), distances.shape)
+    
+    return second_best
+
+def are_neighbors(som, w1, w2):
+    """İki nöronun komşu olup olmadığını kontrol et"""
+    return abs(w1[0] - w2[0]) <= 1 and abs(w1[1] - w2[1]) <= 1
+
+def calculate_silhouette_score(X, labels):
+    """Silhouette skoru hesaplama"""
+    from sklearn.metrics import silhouette_score
+    return silhouette_score(X, labels['bmu_x'] * 100 + labels['bmu_y'])
+
+def show_meta_clustering_validation():
+    st.subheader("Meta Kümeleme Doğrulama Metrikleri")
+    with st.expander("Bu Metrikler Ne Anlama Geliyor?"):
+        st.write("""
+        Bu bölüm, meta kümelemenin kalitesini değerlendirmek için çeşitli metrikler sunar:
+        - **Silhouette Skoru**: Kümeleme kalitesini ölçer (-1 ile 1 arası, yüksek değerler daha iyi)
+        - **Calinski-Harabasz İndeksi**: Küme içi ve küme dışı dağılımı ölçer
+        - **Davies-Bouldin İndeksi**: Küme içi benzerlik ve küme dışı farklılığı ölçer
+        """)
+    
+    if st.session_state.som is None or st.session_state.X is None:
+        st.warning("SOM modeli henüz eğitilmemiş.")
+        return
+    
+    n_clusters = st.slider("Meta Küme Sayısı (Doğrulama için)", 2, 10, 5)
+    
+    # Meta kümeleme
+    from sklearn.cluster import KMeans
+    weights = st.session_state.som.get_weights().reshape(-1, st.session_state.X.shape[1])
+    kmeans = KMeans(n_clusters=n_clusters)
+    meta_clusters = kmeans.fit_predict(weights)
+    
+    # Metrikler
+    from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+    
+    silhouette_avg = silhouette_score(weights, meta_clusters)
+    calinski_harabasz = calinski_harabasz_score(weights, meta_clusters)
+    davies_bouldin = davies_bouldin_score(weights, meta_clusters)
+    
+    # Metrikleri göster
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Silhouette Skoru", f"{silhouette_avg:.4f}")
+    with col2:
+        st.metric("Calinski-Harabasz İndeksi", f"{calinski_harabasz:.4f}")
+    with col3:
+        st.metric("Davies-Bouldin İndeksi", f"{davies_bouldin:.4f}")
+    
+    # Metrikleri görselleştir
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=['Silhouette', 'Calinski-Harabasz', 'Davies-Bouldin'],
+        y=[silhouette_avg, calinski_harabasz, davies_bouldin],
+        text=[f"{silhouette_avg:.4f}", f"{calinski_harabasz:.4f}", f"{davies_bouldin:.4f}"],
+        textposition='auto',
+    ))
+    fig.update_layout(title="Meta Kümeleme Doğrulama Metrikleri")
+    st.plotly_chart(fig)
+    
+    # Optimal küme sayısı analizi
+    st.subheader("Optimal Küme Sayısı Analizi")
+    with st.expander("Bu Analiz Ne Anlama Geliyor?"):
+        st.write("""
+        Bu analiz, farklı küme sayıları için metrikleri gösterir ve optimal küme sayısını belirlemenize yardımcı olur.
+        - **Silhouette Skoru**: Yüksek değerler daha iyi kümeleme gösterir
+        - **Elbow Metodu**: Küme sayısı artıkça kazanımın azaldığı nokta optimal küme sayısını gösterir
+        """)
+    
+    # Farklı küme sayıları için metrikleri hesapla
+    k_range = range(2, 11)
+    silhouette_scores = []
+    calinski_scores = []
+    davies_scores = []
+    
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k)
+        labels = kmeans.fit_predict(weights)
+        silhouette_scores.append(silhouette_score(weights, labels))
+        calinski_scores.append(calinski_harabasz_score(weights, labels))
+        davies_scores.append(davies_bouldin_score(weights, labels))
+    
+    # Metrikleri görselleştir
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=list(k_range), y=silhouette_scores, name='Silhouette'))
+    fig.add_trace(go.Scatter(x=list(k_range), y=calinski_scores, name='Calinski-Harabasz'))
+    fig.add_trace(go.Scatter(x=list(k_range), y=davies_scores, name='Davies-Bouldin'))
+    fig.update_layout(
+        title="Farklı Küme Sayıları için Metrikler",
+        xaxis_title="Küme Sayısı",
+        yaxis_title="Metrik Değeri"
+    )
+    st.plotly_chart(fig)
