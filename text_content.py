@@ -10,8 +10,8 @@ def get_som_description():
 bir yapay sinir ağıdır. Log analizinde benzer davranışları gruplamak ve
 anormallikleri tespit etmek için kullanılır.
 
-SOM, her log kaydını en uygun nörona (Best Matching Unit - BMU) atar ve quantization error ile anomalileri belirler.
-Yüksek quantization error değerleri, potansiyel anomalileri işaret eder.
+SOM, her log kaydını en uygun nörona (Best Matching Unit - BMU) atar ve niceleme hatası ile anomalileri belirler.
+Yüksek niceleme hatası değerleri, potansiyel anomalileri işaret eder.
 
 Daha fazla bilgi için: [Analytics Vidhya SOM Kılavuzu](https://www.analyticsvidhya.com/blog/2021/09/beginners-guide-to-anomaly-detection-using-self-organizing-maps/)
 """
@@ -27,24 +27,24 @@ def get_user_gains():
 def get_summary_table_description():
     return """
 Bu tablo, SOM ızgarasındaki her nöronun (BMU) özet istatistiklerini gösterir. Her nöron, benzer logları temsil eder. 
-Tablo, nöronun koordinatlarını, engellenmiş istek oranını, en sık URI'yi, ortalama quantization error'u ve log sayısını içerir.
+Tablo, nöronun koordinatlarını, engellenmiş istek oranını, en sık URI'yi, ortalama niceleme hatasını ve log sayısını içerir.
 - **Yüksek engellenmiş oranı**: Potansiyel güvenlik tehditlerini işaret edebilir.
-- **Yüksek quantization error**: Anormal davranışları gösterebilir.
+- **Yüksek niceleme hatası**: Anormal davranışları gösterebilir.
 """
 
 def get_scatter_plot_description():
     return """
 Bu grafik, log verilerinin SOM ızgarasındaki dağılımını gösterir. Her nokta, bir log kaydını temsil eder ve en uygun nörona (BMU) atanmıştır. 
-Renkler, quantization error'u gösterir:
-- **Mavi (düşük error)**: Normal davranışları temsil eder.
-- **Kırmızı (yüksek error)**: Potansiyel anomalileri işaret eder.
+Renkler, niceleme hatasını gösterir:
+- **Mavi (düşük hata)**: Normal davranışları temsil eder.
+- **Kırmızı (yüksek hata)**: Potansiyel anomalileri işaret eder.
 Üzerine gelindiğinde, logun client port, URI ve engellenme durumu gibi detayları görünür.
 """
 
 def get_error_distribution_description():
     return """
-Bu histogram, logların quantization error değerlerinin dağılımını gösterir. 
-Yüksek quantization error'lar (sağda) potansiyel anomalileri temsil eder. 
+Bu histogram, logların niceleme hatası değerlerinin dağılımını gösterir. 
+Yüksek niceleme hataları (sağda) potansiyel anomalileri temsil eder. 
 Bu grafik, anomalilerin ne kadar yaygın olduğunu anlamanıza yardımcı olur.
 """
 
@@ -66,9 +66,9 @@ inceleyebilirsiniz. Vurgulanan kırmızı 'X', seçilen nöronun ızgaradaki kon
 
 def get_anomaly_detection_description():
     return """
-Bu bölüm, yüksek quantization error'a sahip logları anomaliler olarak tespit eder. 
+Bu bölüm, yüksek niceleme hatasına sahip logları anomaliler olarak tespit eder. 
 Yüzdebirlik eşiğini ayarlayarak, hangi logların anormal olduğunu belirleyebilirsiniz. 
 Daha yüksek bir eşik, daha az ama daha belirgin anomaliler gösterir.
 Örnek: `/WEB-INF/web.xml` gibi hassas dosyalara erişim girişimleri genellikle 
-yüksek quantization error ile anormal olarak işaretlenir.
+yüksek niceleme hatası ile anormal olarak işaretlenir.
 """

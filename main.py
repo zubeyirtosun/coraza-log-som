@@ -2,9 +2,10 @@ import streamlit as st
 import json
 import pandas as pd
 import numpy as np
-from data_processing import preprocess_data, handle_missing_data, train_som
+from data_processing import preprocess_data, handle_missing_data, train_som, fix_unhashable_columns, preprocess_data_interactive
 from visualizations import (show_summary_table, show_visualizations, handle_meta_clustering, 
-                           handle_neuron_details, handle_anomaly_detection, show_som_validation, show_meta_clustering_validation)
+                           handle_neuron_details, handle_anomaly_detection, show_som_validation, 
+                           show_meta_clustering_validation, show_advanced_analysis)
 from session_state import initialize_session_state, reset_session_state
 from text_content import get_main_description, get_som_description, get_user_gains
 
@@ -44,10 +45,18 @@ if uploaded_file and st.session_state.df is None:
         
         # Nokta ayracı ile normalize et
         try:
-            st.session_state.df = pd.json_normalize(transactions, sep='.')
-        except:
+            df = pd.json_normalize(transactions, sep='.')
+            # Hashlenemeyen değerleri düzelt
+            df = fix_unhashable_columns(df)
+            st.session_state.df = df
+        except Exception as e:
+            # Hata çıktısı
+            st.warning(f"JSON normalize hatası: {str(e)}. Basit formata dönüştürülüyor.")
             # Basit düz DataFrame oluştur
-            st.session_state.df = pd.DataFrame(transactions)
+            df = pd.DataFrame(transactions)
+            # Hashlenemeyen değerleri düzelt
+            df = fix_unhashable_columns(df)
+            st.session_state.df = df
         
         # Hata ayıklama çıktıları
         st.write("Yüklenen Veri Önizleme:")
@@ -78,6 +87,9 @@ if st.session_state.X is not None and st.session_state.som is None:
     st.session_state.df['bmu_x'] = bmu_coords[:, 0]
     st.session_state.df['bmu_y'] = bmu_coords[:, 1]
     st.session_state.df['quantization_error'] = [st.session_state.som.quantization_error(x.reshape(1, -1)) for x in st.session_state.X]
+    
+    # BMU koordinatlarını tekrar hashlenebilir yap
+    st.session_state.df = fix_unhashable_columns(st.session_state.df)
 
 if st.session_state.som is not None:
     st.subheader("SOM Parametre Ayarları")
@@ -93,17 +105,28 @@ if st.session_state.som is not None:
         st.session_state.df['bmu_x'] = bmu_coords[:, 0]
         st.session_state.df['bmu_y'] = bmu_coords[:, 1]
         st.session_state.df['quantization_error'] = [st.session_state.som.quantization_error(x.reshape(1, -1)) for x in st.session_state.X]
+        
+        # BMU koordinatlarını tekrar hashlenebilir yap
+        st.session_state.df = fix_unhashable_columns(st.session_state.df)
+        
         st.session_state.summary_df = None
 
 
 if st.session_state.som is not None:
-    show_summary_table()
-    show_visualizations()
-    handle_neuron_details()  # Yeni eklenen nöron detayları bölümü
-    handle_anomaly_detection()  # Yeni eklenen anomali tespiti bölümü
-    handle_meta_clustering()
-    show_som_validation()
-    show_meta_clustering_validation()
+    # Main tabs
+    main_tabs = st.tabs(["Temel Analizler", "Gelişmiş Analizler"])
+    
+    with main_tabs[0]:
+        show_summary_table()
+        show_visualizations()
+        handle_neuron_details()  # Yeni eklenen nöron detayları bölümü
+        handle_anomaly_detection()  # Yeni eklenen anomali tespiti bölümü
+        handle_meta_clustering()
+        show_som_validation()
+        show_meta_clustering_validation()
+    
+    with main_tabs[1]:
+        show_advanced_analysis()
 
 if st.button("Analizi Sıfırla"):
     reset_session_state()
