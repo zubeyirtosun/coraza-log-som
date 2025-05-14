@@ -181,13 +181,54 @@ def prepare_final_features(df):
     feature_array = df[numeric_features].values
     
     # NaN veya inf değerleri kontrol et ve raporla
-    has_nan = np.isnan(feature_array).any()
-    has_inf = np.isinf(feature_array).any()
-    
-    if has_nan or has_inf:
-        st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
-        # NaN değerleri sıfırla doldur
-        feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+    try:
+        has_nan = np.isnan(feature_array).any()
+        has_inf = np.isinf(feature_array).any()
+        
+        if has_nan or has_inf:
+            st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
+            # NaN değerleri sıfırla doldur
+            feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+    except TypeError:
+        # Sayısal olmayan veriler için hata oluşursa, veriyi dönüştürmeye çalış
+        st.warning("Sayısal olmayan veriler tespit edildi. Otomatik dönüştürme yapılıyor.")
+        # Veriyi temizle - sayısal değerlere dönüştür veya temizle
+        try:
+            # Veriyi float türüne dönüştürmeye çalış
+            feature_array = feature_array.astype(float)
+            
+            # Şimdi NaN ve inf kontrolü yapabiliriz
+            has_nan = np.isnan(feature_array).any()
+            has_inf = np.isinf(feature_array).any()
+            
+            if has_nan or has_inf:
+                st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
+                # NaN değerleri sıfırla doldur
+                feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+        except (ValueError, TypeError):
+            # Dönüşüm hata verirse, her bir hücreyi ayrı ayrı kontrol edip düzelt
+            st.error("Veri dönüşümü başarısız oldu. Daha güçlü temizleme uygulanıyor.")
+            feature_array_list = []
+            for row in feature_array:
+                cleaned_row = []
+                for val in row:
+                    try:
+                        # String değilse ve sayısal bir değere dönüştürülebilirse
+                        if not isinstance(val, str):
+                            cleaned_val = float(val)
+                            # NaN veya inf ise 0 yap
+                            if np.isnan(cleaned_val) or np.isinf(cleaned_val):
+                                cleaned_val = 0.0
+                        else:
+                            # String ise 0 olarak işle
+                            cleaned_val = 0.0
+                    except (ValueError, TypeError):
+                        # Dönüştürülemiyorsa 0 yap
+                        cleaned_val = 0.0
+                    cleaned_row.append(cleaned_val)
+                feature_array_list.append(cleaned_row)
+            
+            feature_array = np.array(feature_array_list, dtype=float)
     
     return scaler.fit_transform(feature_array)
 
