@@ -11,4 +11,5 @@ hdbscan==0.8.30
 fpdf==1.7.2
 seaborn==0.12.2
 kneed==0.8.5
+pillow==9.5.0
 

@@ -17,7 +17,7 @@ def handle_missing_data():
     if missing_values.any():
         missing_method = st.selectbox(
             "Eksik Veri İşleme Yöntemi",
-            options=["Satırları Çıkar", "Ortalama ile Doldur", "Medyan ile Doldur", "Bir Şey Yapma"]
+            options=["Ortalama ile Doldur", "Medyan ile Doldur", "Bir Şey Yapma"]
         )
     else:
         missing_method = "Bir Şey Yapma"
@@ -137,9 +137,7 @@ def preprocess_data(df, missing_method, uri_threshold=10):
         return None, f"İşlem hatası: {str(e)}"
 
 def handle_missing_values(df, method):
-    if method == "Satırları Çıkar":
-        return df.dropna()
-    elif method == "Ortalama ile Doldur":
+    if method == "Ortalama ile Doldur":
         numeric_cols = df.select_dtypes(include=np.number).columns
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
         return df
@@ -230,6 +228,10 @@ def prepare_final_features(df):
             
             feature_array = np.array(feature_array_list, dtype=float)
     
+    # Feature array'in tamamen temizlendiğinden emin ol
+    feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+    
+    # Güncel ensure_all_finite parametresi ile fit_transform çağrısı
     return scaler.fit_transform(feature_array)
 
 def train_som(X, grid_size, sigma, learning_rate, iterations):
