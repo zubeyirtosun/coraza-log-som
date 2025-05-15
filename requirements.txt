@@ -1,6 +1,6 @@
 minisom==2.3.1
 streamlit==1.28.0
-numpy==1.24.4
+numpy
 pandas==2.0.3
 scikit-learn==1.3.0
 matplotlib==3.7.2
