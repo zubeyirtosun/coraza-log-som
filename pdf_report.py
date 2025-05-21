@@ -18,33 +18,93 @@ class PDF(FPDF):
     """
     def __init__(self):
         super().__init__(orientation='P', unit='mm', format='A4')
-        # DejaVu fontlarını ekle
-        self.font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'dejavu-fonts-ttf-2.37', 'ttf')
-        self.add_font('DejaVu', '', os.path.join(self.font_path, 'DejaVuSans.ttf'), uni=True)
-        self.add_font('DejaVu', 'B', os.path.join(self.font_path, 'DejaVuSans-Bold.ttf'), uni=True)
-        self.add_font('DejaVu', 'I', os.path.join(self.font_path, 'DejaVuSans-Oblique.ttf'), uni=True)
+        # DejaVu fontlarını ekle (hata yönetimi ile)
+        try:
+            # Göreceli yolları kullan - bu dosyanın bulunduğu dizinden başla
+            # Üç farklı olası dizini kontrol et
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            possible_font_paths = [
+                os.path.join(current_dir, 'static_fonts'),           # 1. Seçenek: static_fonts dizini
+                os.path.join(current_dir, 'fonts', 'dejavu-fonts-ttf-2.37', 'ttf'),  # 2. Seçenek: ana font dizini
+                os.path.join('static_fonts')                          # 3. Seçenek: kök dizindeki static_fonts
+            ]
+            
+            # Var olan ilk font dizinini kullan
+            font_path = None
+            for path in possible_font_paths:
+                if os.path.exists(path) and os.path.isdir(path):
+                    font_path = path
+                    st.info(f"Font dizini bulundu: {path}")
+                    break
+            
+            if font_path is None:
+                st.warning("Hiçbir font dizini bulunamadı. Varsayılan fontlar kullanılacak.")
+                self.custom_fonts = False
+                self.add_page()
+                return
+            
+            # Font dosyalarının yolları
+            sans_path = os.path.join(font_path, 'DejaVuSans.ttf')
+            sans_bold_path = os.path.join(font_path, 'DejaVuSans-Bold.ttf')
+            sans_oblique_path = os.path.join(font_path, 'DejaVuSans-Oblique.ttf')
+            
+            # Font dosyalarının varlığını kontrol et
+            if not os.path.exists(sans_path) or not os.path.exists(sans_bold_path) or not os.path.exists(sans_oblique_path):
+                missing = []
+                if not os.path.exists(sans_path): missing.append("DejaVuSans.ttf")
+                if not os.path.exists(sans_bold_path): missing.append("DejaVuSans-Bold.ttf")
+                if not os.path.exists(sans_oblique_path): missing.append("DejaVuSans-Oblique.ttf")
+                
+                st.warning(f"Eksik font dosyaları: {', '.join(missing)}")
+                st.warning(f"Aranan dizin: {font_path}")
+                self.custom_fonts = False
+            else:
+                # Font dosyaları mevcutsa ekle
+                self.add_font('DejaVu', '', sans_path, uni=True)
+                self.add_font('DejaVu', 'B', sans_bold_path, uni=True)
+                self.add_font('DejaVu', 'I', sans_oblique_path, uni=True)
+                self.custom_fonts = True
+                st.success("Özel fontlar başarıyla yüklendi.")
+                
+        except Exception as e:
+            st.warning(f"Font yükleme hatası: {str(e)}")
+            st.warning(traceback.format_exc())
+            self.custom_fonts = False
+            
         self.add_page()
 
     def header(self):
         # Başlık
-        self.set_font('DejaVu', 'B', 15)
+        if hasattr(self, 'custom_fonts') and self.custom_fonts:
+            self.set_font('DejaVu', 'B', 15)
+        else:
+            self.set_font('Arial', 'B', 15)
         self.cell(0, 10, 'SOM ve Meta Kumeleme Analizi Raporu', 0, 1, 'C')
         self.ln(10)
         
     def footer(self):
         # Sayfa numarası
         self.set_y(-15)
-        self.set_font('DejaVu', 'I', 8)
+        if hasattr(self, 'custom_fonts') and self.custom_fonts:
+            self.set_font('DejaVu', 'I', 8)
+        else:
+            self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Sayfa {self.page_no()}', 0, 0, 'C')
         
     def chapter_title(self, title):
-        self.set_font('DejaVu', 'B', 14)
+        if hasattr(self, 'custom_fonts') and self.custom_fonts:
+            self.set_font('DejaVu', 'B', 14)
+        else:
+            self.set_font('Arial', 'B', 14)
         self.ln(5)
         self.cell(0, 10, title, 0, 1, 'L')
         self.ln(5)
         
     def chapter_body(self, body):
-        self.set_font('DejaVu', '', 12)
+        if hasattr(self, 'custom_fonts') and self.custom_fonts:
+            self.set_font('DejaVu', '', 12)
+        else:
+            self.set_font('Arial', '', 12)
         self.multi_cell(0, 5, body)
         self.ln()
     
@@ -59,8 +119,12 @@ class PDF(FPDF):
             self.add_page()
             y = self.get_y()
         
-        self.image(img_data, x=x, y=y, w=w, h=h)
-        self.ln(h + 10)
+        try:
+            self.image(img_data, x=x, y=y, w=w, h=h)
+            self.ln(h + 10)
+        except Exception as e:
+            st.warning(f"Görsel eklenirken hata: {str(e)}")
+            self.ln(10)
 
     def add_table(self, data, headers=None):
         # Tablodaki her sütunun genişliğini hesapla
@@ -68,13 +132,19 @@ class PDF(FPDF):
         
         # Başlıklar varsa ekle
         if headers:
-            self.set_font('DejaVu', 'B', 10)
+            if hasattr(self, 'custom_fonts') and self.custom_fonts:
+                self.set_font('DejaVu', 'B', 10)
+            else:
+                self.set_font('Arial', 'B', 10)
             for header in headers:
                 self.cell(col_width, 7, str(header), 1, 0, 'C')
             self.ln()
         
         # Verileri ekle
-        self.set_font('DejaVu', '', 10)
+        if hasattr(self, 'custom_fonts') and self.custom_fonts:
+            self.set_font('DejaVu', '', 10)
+        else:
+            self.set_font('Arial', '', 10)
         for row in data:
             for item in row:
                 self.cell(col_width, 7, str(item), 1, 0, 'C')
@@ -120,13 +190,15 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
         st.warning("SOM modeli henüz eğitilmemiş, rapor oluşturulamıyor.")
         return None
     
+    temp_dir = None
     try:
         # Geçici dosya dizini oluştur
         temp_dir = tempfile.mkdtemp()
         temp_pdf_path = os.path.join(temp_dir, "som_report.pdf")
         
         try:
-            # PDF oluştur - DejaVu fontlarını kullan (Türkçe karakter desteği için)
+            # PDF oluştur
+            st.info("PDF raporu oluşturuluyor...")
             pdf = PDF()
             
             # Rapor bilgileri
@@ -148,132 +220,146 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
             pdf.ln(10)
             
             # SOM özet tablosu
-            if 'summary_df' in st.session_state and st.session_state.summary_df is not None:
-                pdf.chapter_title("SOM Ozet Tablosu")
-                
-                # Tabloyu görselleştir
-                plt.figure(figsize=(10, 6))
-                summary_df_head = st.session_state.summary_df.head(20)  # İlk 20 satır
-                table_data = []
-                table_columns = ['Noron', 'Engellenme Orani', 'En Sik URI', 'Ort. Hata', 'Log Sayisi']
-                for _, row in summary_df_head.iterrows():
-                    table_data.append([
-                        row['Nöron'], 
-                        f"{row['Engellenme Oranı']:.4f}", 
-                        str(row['En Sık URI'])[:30], 
-                        f"{row['Ort. Hata']:.4f}", 
-                        str(row['Log Sayısı'])
-                    ])
-                
-                table_fig = plt.figure(figsize=(10, 5))
-                ax = table_fig.add_subplot(111)
-                ax.axis('off')
-                ax.table(
-                    cellText=table_data,
-                    colLabels=table_columns,
-                    loc='center',
-                    cellLoc='center'
-                )
-                
-                # Geçici dosyaya kaydet
-                temp_file = os.path.join(temp_dir, 'table.png')
-                plt.savefig(temp_file, format='png', bbox_inches='tight')
-                plt.close()
-                
-                # PDF'e ekle
-                pdf.add_image(temp_file)
+            if include_basic and 'summary_df' in st.session_state and st.session_state.summary_df is not None:
+                try:
+                    pdf.chapter_title("SOM Ozet Tablosu")
+                    
+                    # Tabloyu görselleştir
+                    plt.figure(figsize=(10, 6))
+                    summary_df_head = st.session_state.summary_df.head(20)  # İlk 20 satır
+                    table_data = []
+                    table_columns = ['Noron', 'Engellenme Orani', 'En Sik URI', 'Ort. Hata', 'Log Sayisi']
+                    for _, row in summary_df_head.iterrows():
+                        table_data.append([
+                            row['Nöron'], 
+                            f"{row['Engellenme Oranı']:.4f}", 
+                            str(row['En Sık URI'])[:30], 
+                            f"{row['Ort. Hata']:.4f}", 
+                            str(row['Log Sayısı'])
+                        ])
+                    
+                    table_fig = plt.figure(figsize=(10, 5))
+                    ax = table_fig.add_subplot(111)
+                    ax.axis('off')
+                    ax.table(
+                        cellText=table_data,
+                        colLabels=table_columns,
+                        loc='center',
+                        cellLoc='center'
+                    )
+                    
+                    # Geçici dosyaya kaydet
+                    temp_file = os.path.join(temp_dir, 'table.png')
+                    plt.savefig(temp_file, format='png', bbox_inches='tight')
+                    plt.close()
+                    
+                    # PDF'e ekle
+                    pdf.add_image(temp_file)
+                except Exception as e:
+                    st.warning(f"SOM özet tablosu eklenirken hata: {str(e)}")
             
             # SOM Dağılımı
-            pdf.chapter_title("SOM Dagilimi Analizi")
-            
-            # SOM dağılımını görselleştir
-            plt.figure(figsize=(10, 6))
-            plt.hist2d(st.session_state.df['bmu_x'], st.session_state.df['bmu_y'], bins=st.session_state.grid_size)
-            plt.colorbar(label='Log Sayisi')
-            plt.title('SOM Izgara Dagilimi')
-            plt.xlabel('BMU X')
-            plt.ylabel('BMU Y')
-            
-            # Geçici dosyaya kaydet
-            temp_file = os.path.join(temp_dir, 'som_dist.png')
-            plt.savefig(temp_file, format='png')
-            plt.close()
-            
-            # PDF'e ekle
-            pdf.add_image(temp_file)
+            if include_basic:
+                try:
+                    pdf.chapter_title("SOM Dagilimi Analizi")
+                    
+                    # SOM dağılımını görselleştir
+                    plt.figure(figsize=(10, 6))
+                    plt.hist2d(st.session_state.df['bmu_x'], st.session_state.df['bmu_y'], bins=st.session_state.grid_size)
+                    plt.colorbar(label='Log Sayisi')
+                    plt.title('SOM Izgara Dagilimi')
+                    plt.xlabel('BMU X')
+                    plt.ylabel('BMU Y')
+                    
+                    # Geçici dosyaya kaydet
+                    temp_file = os.path.join(temp_dir, 'som_dist.png')
+                    plt.savefig(temp_file, format='png')
+                    plt.close()
+                    
+                    # PDF'e ekle
+                    pdf.add_image(temp_file)
+                except Exception as e:
+                    st.warning(f"SOM dağılımı eklenirken hata: {str(e)}")
             
             # Diğer grafikler için yeni sayfa
             pdf.add_page()
             
             # Niceleme Hatası Dağılımı
-            pdf.chapter_title("Niceleme Hatasi Dagilimi")
-            
-            # Niceleme hatasını görselleştir
-            plt.figure(figsize=(10, 6))
-            plt.hist(st.session_state.df['quantization_error'], bins=50)
-            plt.title('Niceleme Hatasi Dagilimi')
-            plt.xlabel('Niceleme Hatasi')
-            plt.ylabel('Frekans')
-            
-            # Geçici dosyaya kaydet
-            temp_file = os.path.join(temp_dir, 'quant_error.png')
-            plt.savefig(temp_file, format='png')
-            plt.close()
-            
-            # PDF'e ekle
-            pdf.add_image(temp_file)
+            if include_basic:
+                try:
+                    pdf.chapter_title("Niceleme Hatasi Dagilimi")
+                    
+                    # Niceleme hatasını görselleştir
+                    plt.figure(figsize=(10, 6))
+                    plt.hist(st.session_state.df['quantization_error'], bins=50)
+                    plt.title('Niceleme Hatasi Dagilimi')
+                    plt.xlabel('Niceleme Hatasi')
+                    plt.ylabel('Frekans')
+                    
+                    # Geçici dosyaya kaydet
+                    temp_file = os.path.join(temp_dir, 'quant_error.png')
+                    plt.savefig(temp_file, format='png')
+                    plt.close()
+                    
+                    # PDF'e ekle
+                    pdf.add_image(temp_file)
+                except Exception as e:
+                    st.warning(f"Niceleme hatası dağılımı eklenirken hata: {str(e)}")
             
             # Meta Kümeleme Sonuçları
-            if 'meta_clusters' in st.session_state and st.session_state.meta_clusters is not None:
-                pdf.add_page()
-                pdf.chapter_title("Meta Kumeleme Sonuclari")
-                
-                # Meta küme sayısını al
-                if 'optimal_k' in st.session_state and st.session_state.optimal_k is not None:
-                    pdf.chapter_body(f"Optimal Kume Sayisi: {st.session_state.optimal_k} (Otomatik Belirlendi)")
-                elif 'df_meta' in st.session_state and st.session_state.df_meta is not None:
-                    n_clusters = st.session_state.df_meta['meta_cluster'].nunique()
-                    pdf.chapter_body(f"Kume Sayisi: {n_clusters} (Manuel Secildi)")
-                
-                # Meta küme dağılımını görselleştir
-                if 'df_meta' in st.session_state and st.session_state.df_meta is not None:
-                    plt.figure(figsize=(10, 6))
-                    scatter = plt.scatter(
-                        st.session_state.df_meta['bmu_x'], 
-                        st.session_state.df_meta['bmu_y'],
-                        c=st.session_state.df_meta['meta_cluster'], 
-                        cmap='viridis',
-                        alpha=0.7
-                    )
-                    plt.colorbar(scatter, label='Meta Kume')
-                    plt.title('Meta Kume Dagilimi')
-                    plt.xlabel('BMU X')
-                    plt.ylabel('BMU Y')
+            if include_basic and 'meta_clusters' in st.session_state and st.session_state.meta_clusters is not None:
+                try:
+                    pdf.add_page()
+                    pdf.chapter_title("Meta Kumeleme Sonuclari")
                     
-                    # Geçici dosyaya kaydet
-                    temp_file = os.path.join(temp_dir, 'meta_cluster.png')
-                    plt.savefig(temp_file, format='png')
-                    plt.close()
+                    # Meta küme sayısını al
+                    if 'optimal_k' in st.session_state and st.session_state.optimal_k is not None:
+                        pdf.chapter_body(f"Optimal Kume Sayisi: {st.session_state.optimal_k} (Otomatik Belirlendi)")
+                    elif 'df_meta' in st.session_state and st.session_state.df_meta is not None:
+                        n_clusters = st.session_state.df_meta['meta_cluster'].nunique()
+                        pdf.chapter_body(f"Kume Sayisi: {n_clusters} (Manuel Secildi)")
                     
-                    # PDF'e ekle
-                    pdf.add_image(temp_file)
-                    
-                    # Meta küme bazında log sayısı
-                    cluster_counts = st.session_state.df_meta['meta_cluster'].value_counts().sort_index()
-                    
-                    plt.figure(figsize=(10, 6))
-                    plt.bar(cluster_counts.index, cluster_counts.values)
-                    plt.title('Meta Kume Bazinda Log Sayisi')
-                    plt.xlabel('Meta Kume')
-                    plt.ylabel('Log Sayisi')
-                    
-                    # Geçici dosyaya kaydet
-                    temp_file = os.path.join(temp_dir, 'cluster_counts.png')
-                    plt.savefig(temp_file, format='png')
-                    plt.close()
-                    
-                    # PDF'e ekle
-                    pdf.add_image(temp_file)
+                    # Meta küme dağılımını görselleştir
+                    if 'df_meta' in st.session_state and st.session_state.df_meta is not None:
+                        plt.figure(figsize=(10, 6))
+                        scatter = plt.scatter(
+                            st.session_state.df_meta['bmu_x'], 
+                            st.session_state.df_meta['bmu_y'],
+                            c=st.session_state.df_meta['meta_cluster'], 
+                            cmap='viridis',
+                            alpha=0.7
+                        )
+                        plt.colorbar(scatter, label='Meta Kume')
+                        plt.title('Meta Kume Dagilimi')
+                        plt.xlabel('BMU X')
+                        plt.ylabel('BMU Y')
+                        
+                        # Geçici dosyaya kaydet
+                        temp_file = os.path.join(temp_dir, 'meta_cluster.png')
+                        plt.savefig(temp_file, format='png')
+                        plt.close()
+                        
+                        # PDF'e ekle
+                        pdf.add_image(temp_file)
+                        
+                        # Meta küme bazında log sayısı
+                        cluster_counts = st.session_state.df_meta['meta_cluster'].value_counts().sort_index()
+                        
+                        plt.figure(figsize=(10, 6))
+                        plt.bar(cluster_counts.index, cluster_counts.values)
+                        plt.title('Meta Kume Bazinda Log Sayisi')
+                        plt.xlabel('Meta Kume')
+                        plt.ylabel('Log Sayisi')
+                        
+                        # Geçici dosyaya kaydet
+                        temp_file = os.path.join(temp_dir, 'cluster_counts.png')
+                        plt.savefig(temp_file, format='png')
+                        plt.close()
+                        
+                        # PDF'e ekle
+                        pdf.add_image(temp_file)
+                except Exception as e:
+                    st.warning(f"Meta kümeleme sonuçları eklenirken hata: {str(e)}")
             
             # Gelişmiş analiz sonuçları
             if include_advanced and 'advanced_analysis_results' in st.session_state:
@@ -395,6 +481,7 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
                         pdf.add_image(temp_file)
             
             # PDF'i oluştur
+            st.info("PDF dosyası kaydediliyor...")
             pdf.output(temp_pdf_path)
             
             # PDF dosyasını oku ve BytesIO'ya aktar
@@ -404,27 +491,25 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
             pdf_bytes = io.BytesIO(pdf_data)
             pdf_bytes.seek(0)
             
-            # Geçici dizini temizle
-            shutil.rmtree(temp_dir)
-            
+            st.success("PDF raporu başarıyla oluşturuldu!")
             return pdf_bytes
             
         except Exception as e:
             st.error(f"PDF oluşturma hatası: {str(e)}")
             st.error(traceback.format_exc())
-            
-            # Temizleme işlemi
-            try:
-                shutil.rmtree(temp_dir)
-            except:
-                pass
-            
             return None
     
     except Exception as e:
         st.error(f"PDF oluşturma işlemi başlatılamadı: {str(e)}")
         st.error(traceback.format_exc())
         return None
+    finally:
+        # Temizleme işlemi
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception as e:
+                st.warning(f"Geçici dosyalar temizlenirken hata: {str(e)}")
 
 def get_pdf_download_link(pdf_output, filename="SOM_Analiz_Raporu.pdf"):
     """PDF'i indirilebilir link olarak döndürür"""
