@@ -313,7 +313,7 @@ def create_time_series_analysis():
             if st.button("Saat Sütunu Oluştur"):
                 try:
                     # Timestamp sütununu datetime formatına çevir
-                    df['transaction.timestamp'] = pd.to_datetime(df['transaction.timestamp'])
+                    df['transaction.timestamp'] = pd.to_datetime(df['transaction.timestamp'], errors='coerce', format='mixed')
                     # Saat bilgisini çıkar
                     df['hour'] = df['transaction.timestamp'].dt.hour
                     st.session_state.df = df
@@ -326,7 +326,7 @@ def create_time_series_analysis():
             if st.button("Saat Sütunu Oluştur"):
                 try:
                     # Timestamp sütununu datetime formatına çevir
-                    df['timestamp'] = pd.to_datetime(df['timestamp'])
+                    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce', format='mixed')
                     # Saat bilgisini çıkar
                     df['hour'] = df['timestamp'].dt.hour
                     st.session_state.df = df
@@ -356,12 +356,28 @@ def create_uri_distribution():
         uri_col = 'request_uri'
         
     if uri_col:
+        # URI'leri kısaltma fonksiyonu
+        def shorten_uri(uri, max_len=30):
+            if isinstance(uri, str) and len(uri) > max_len:
+                return uri[:max_len-3] + '...'
+            return uri
+            
+        # URI değerlerini kısalt ve sayımları al
         uri_counts = df[uri_col].value_counts().head(10)
+        
+        # Okunabilirliği artırmak için URI etiketlerini kısalt
+        shortened_uris = {shorten_uri(uri): count for uri, count in uri_counts.items()}
+        
+        # Kısa açıklamalar için tooltip
+        hover_template = '<b>%{label}</b><br>Sayı: %{value}<br>Oran: %{percent}'
+        
         fig = px.pie(
-            values=uri_counts.values,
-            names=uri_counts.index,
-            title='En Sık URI\'lerin Dağılımı'
+            values=list(shortened_uris.values()),
+            names=list(shortened_uris.keys()),
+            title='En Sık URI\'lerin Dağılımı',
+            hover_data=[list(uri_counts.keys())],  # Tam URI'yi hover'da göster
         )
+        fig.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig)
     else:
         st.warning("URI dağılımı için gerekli sütun bulunamadı.")
@@ -468,6 +484,10 @@ def handle_meta_clustering():
         if uri_col:
             agg_dict[uri_col] = lambda x: x.mode()[0] if not x.empty and len(x.mode()) > 0 else 'Yok'
             
+        # Niceleme hatası için özet değerler
+        if 'quantization_error' in df_meta.columns:
+            agg_dict['quantization_error'] = ['mean', 'std', 'min', 'max']
+            
         # Log sayısı için herhangi bir sütun
         count_cols = ['transaction.client_port', 'client_port']
         count_col = next((col for col in count_cols if col in df_meta.columns), df_meta.columns[0])
@@ -493,6 +513,29 @@ def handle_meta_clustering():
                 st.warning("Meta küme özeti oluşturulurken sütun sayısı uyumsuzluğu nedeniyle tablo görüntülenemiyor.")
                 st.write("Ham Meta Küme Verileri:")
                 st.dataframe(meta_summary)
+        
+        # Meta küme bazında niceleme hatası dağılımı
+        st.subheader("Meta Küme Bazında Niceleme Hatası Dağılımı")
+        with st.expander("Bu Grafik Ne Anlama Geliyor?"):
+            st.write("""
+            Bu grafik, her meta-kümedeki logların niceleme hata değerlerinin dağılımını gösterir. 
+            Box plot grafiği, her kümenin medyan, çeyreklikler ve aykırı değerlerini gösterir. 
+            Yüksek niceleme hatası değerleri, daha anormal logları gösterebilir. Kümeler arasında 
+            büyük farklar, farklı davranış modellerini işaret eder.
+            """)
+            
+            if 'quantization_error' in df_meta.columns:
+                fig = px.box(
+                    df_meta,
+                    x='meta_cluster',
+                    y='quantization_error',
+                    title='Meta Küme Bazında Niceleme Hatası Dağılımı',
+                    labels={'meta_cluster': 'Meta Küme', 'quantization_error': 'Niceleme Hatası'},
+                    color='meta_cluster'
+                )
+                st.plotly_chart(fig)
+            else:
+                st.warning("Niceleme hatası sütunu bulunamadı.")
         
         # Meta küme bazında log sayısı grafiği
         st.subheader("Meta Küme Bazında Log Sayısı")
@@ -856,9 +899,17 @@ def show_meta_clustering_validation():
         if len(np.unique(meta_clusters)) >= 2:  # En az 2 küme olmalı
             try:
                 from sklearn.metrics import silhouette_score
-                silhouette = silhouette_score(weights, meta_clusters)
-            except:
-                silhouette = "Hesaplanamadı"
+                
+                # Silhouette skoru hesaplaması için ek kontroller
+                unique_clusters = np.unique(meta_clusters)
+                min_samples_per_cluster = min([np.sum(meta_clusters == c) for c in unique_clusters])
+                
+                if min_samples_per_cluster >= 1 and len(unique_clusters) >= 2:
+                    silhouette = silhouette_score(weights, meta_clusters)
+                else:
+                    silhouette = "Hesaplanamadı (Bazı kümeler tek elemanlı veya küme sayısı yetersiz)"
+            except Exception as e:
+                silhouette = f"Hesaplanamadı: {str(e)}"
                 
             try:
                 from sklearn.metrics import calinski_harabasz_score

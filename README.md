@@ -23,7 +23,7 @@ Bu proje, Coraza WAF'ın ürettiği JSON formatındaki log kayıtlarını analiz
 - **Boyut İndirgeme**: Her kümedeki veri noktalarını PCA, t-SNE ve UMAP ile 2D/3D görselleştirme
 - **Çapraz Doğrulama Benzeri Yöntem**: Veriyi parçalara bölerek, her parçada benzer kümeler oluşup oluşmadığını kontrol etme
 - **Otomatik Optimal Küme Sayısı Belirleme**: Dirsek yöntemi, silüet skoru ve diğer metrikler kullanılarak en uygun küme sayısı önerisi
-- **PDF Rapor Oluşturma**: Tüm analizlerin sonuçlarını içeren indirilebilir PDF raporu
+- **PDF Rapor Oluşturma**: Tüm analizlerin sonuçlarını içeren indirilebilir PDF raporu (Türkçe karakter desteği ile)
 
 ## Kurulum
 
@@ -59,7 +59,8 @@ streamlit run main.py
 - **session_state.py**: Streamlit oturum durumunu yöneten yardımcı fonksiyonlar
 - **text_content.py**: Uygulamadaki metin içeriklerini barındırır
 - **advanced_clustering.py**: Gelişmiş kümeleme ve boyut indirgeme fonksiyonları
-- **pdf_report.py**: PDF rapor oluşturma fonksiyonları
+- **pdf_report.py**: PDF rapor oluşturma fonksiyonları (dahili font desteği)
+- **fonts/**: PDF oluşturma için kullanılan font dosyaları
 
 ## SOM Nedir?
 

@@ -23,7 +23,174 @@ st.markdown(get_user_gains())
 
 st.info("Başlamak için bir JSON log dosyası yükleyin. Ardından eksik veri işleme seçeneklerini belirtebilirsiniz.")
 
-uploaded_file = st.file_uploader("Log dosyanızı yükleyin (JSON formatında)", type=["json"])
+# Veri yükleme seçenekleri
+upload_method = st.radio(
+    "Veri yükleme yöntemi seçin:",
+    ["Dosya Yükle", "Örnek Veri Kullan"]
+)
+
+if upload_method == "Dosya Yükle":
+    # Dosya formatı açıklaması
+    with st.expander("Desteklenen JSON formatı hakkında bilgi"):
+        st.markdown("""
+        ### Dosya Formatı Gereksinimleri:
+        
+        Yüklediğiniz JSON dosyası aşağıdaki formatlardan birinde olmalıdır:
+        
+        **1. Tek transaction:**
+        ```json
+        {
+          "transaction": {
+            "client_port": 12345,
+            "request": {
+              "uri": "/login",
+              "method": "POST"
+            },
+            "timestamp": "2023-01-01T10:20:30Z",
+            "is_interrupted": false
+          }
+        }
+        ```
+        
+        **2. Transaction listesi:**
+        ```json
+        [
+          {
+            "transaction": {
+              "client_port": 12345,
+              "request": {
+                "uri": "/login",
+                "method": "POST"
+              },
+              "timestamp": "2023-01-01T10:20:30Z",
+              "is_interrupted": false
+            }
+          },
+          {
+            "transaction": {
+              "client_port": 67890,
+              "request": {
+                "uri": "/admin",
+                "method": "GET"
+              },
+              "timestamp": "2023-01-01T10:25:30Z",
+              "is_interrupted": true
+            }
+          }
+        ]
+        ```
+        
+        **3. Düz format:**
+        ```json
+        [
+          {
+            "client_port": 12345,
+            "request.uri": "/login",
+            "request.method": "POST",
+            "timestamp": "2023-01-01T10:20:30Z",
+            "is_interrupted": false
+          }
+        ]
+        ```
+        
+        Eksik alanlar otomatik olarak varsayılan değerlerle doldurulacaktır.
+        """)
+    
+    uploaded_file = st.file_uploader("Log dosyanızı yükleyin (JSON formatında)", type=["json"])
+elif upload_method == "Örnek Veri Kullan":
+    if st.button("Örnek Veri Yükle"):
+        # Örnek veri
+        import io
+        import json
+        
+        example_data = [
+            {
+                "transaction": {
+                    "client_port": 12345,
+                    "request": {
+                        "uri": "/login",
+                        "method": "POST"
+                    },
+                    "timestamp": "2023-01-01T10:20:30Z",
+                    "is_interrupted": False
+                }
+            },
+            {
+                "transaction": {
+                    "client_port": 67890,
+                    "request": {
+                        "uri": "/admin",
+                        "method": "GET"
+                    },
+                    "timestamp": "2023-01-01T10:25:30Z",
+                    "is_interrupted": True
+                }
+            },
+            {
+                "transaction": {
+                    "client_port": 54321,
+                    "request": {
+                        "uri": "/dashboard",
+                        "method": "GET"
+                    },
+                    "timestamp": "2023-01-01T10:30:30Z",
+                    "is_interrupted": False
+                }
+            },
+            # Birkaç çeşit örnek ekliyoruz
+            {
+                "transaction": {
+                    "client_port": 11111,
+                    "request": {
+                        "uri": "/api/users",
+                        "method": "GET"
+                    },
+                    "timestamp": "2023-01-01T11:20:30Z",
+                    "is_interrupted": False
+                }
+            },
+            {
+                "transaction": {
+                    "client_port": 22222,
+                    "request": {
+                        "uri": "/login",
+                        "method": "POST"
+                    },
+                    "timestamp": "2023-01-01T12:20:30Z",
+                    "is_interrupted": True
+                }
+            }
+        ]
+        
+        for i in range(20):  # Analiz için daha fazla örnek ekle
+            import random
+            import datetime
+            
+            uri_choices = ["/login", "/admin", "/dashboard", "/api/users", "/logout", "/profile", "/settings"]
+            method_choices = ["GET", "POST", "PUT", "DELETE"]
+            
+            example_data.append({
+                "transaction": {
+                    "client_port": random.randint(10000, 60000),
+                    "request": {
+                        "uri": random.choice(uri_choices),
+                        "method": random.choice(method_choices)
+                    },
+                    "timestamp": (datetime.datetime(2023, 1, 1, 10, 0, 0) + 
+                                  datetime.timedelta(minutes=random.randint(0, 1440))).isoformat(),
+                    "is_interrupted": random.random() < 0.3  # %30 olasılıkla engellendi
+                }
+            })
+        
+        # Örnek veriyi JSON'a dönüştür
+        example_json = json.dumps(example_data)
+        uploaded_file = io.BytesIO(example_json.encode())
+        uploaded_file.name = "example_data.json"
+        
+        st.success("Örnek veri yüklendi! İşlemeye devam edebilirsiniz.")
+    else:
+        uploaded_file = None
+
 if uploaded_file and st.session_state.df is None:
     try:
         raw_data = json.load(uploaded_file)

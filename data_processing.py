@@ -17,7 +17,7 @@ def handle_missing_data():
     if missing_values.any():
         missing_method = st.selectbox(
             "Eksik Veri İşleme Yöntemi",
-            options=["Satırları Çıkar", "Ortalama ile Doldur", "Medyan ile Doldur", "Bir Şey Yapma"]
+            options=["Ortalama ile Doldur", "Medyan ile Doldur", "Bir Şey Yapma"]
         )
     else:
         missing_method = "Bir Şey Yapma"
@@ -137,9 +137,7 @@ def preprocess_data(df, missing_method, uri_threshold=10):
         return None, f"İşlem hatası: {str(e)}"
 
 def handle_missing_values(df, method):
-    if method == "Satırları Çıkar":
-        return df.dropna()
-    elif method == "Ortalama ile Doldur":
+    if method == "Ortalama ile Doldur":
         numeric_cols = df.select_dtypes(include=np.number).columns
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
         return df
@@ -151,7 +149,7 @@ def handle_missing_values(df, method):
 
 def create_features(df, uri_threshold):
     # Zaman damgası işleme
-    df['transaction.timestamp'] = pd.to_datetime(df['transaction.timestamp'])
+    df['transaction.timestamp'] = pd.to_datetime(df['transaction.timestamp'], errors='coerce', format='mixed')
     df['hour'] = df['transaction.timestamp'].dt.hour
     
     # URI kategorizasyonu
@@ -174,63 +172,46 @@ def prepare_final_features(df):
                       or col.startswith('transaction.request.method_') 
                       or col in ['transaction.client_port', 'hour']]
     
-    # ensure_all_finite parametresi ile StandardScaler kullanımı
-    scaler = StandardScaler()
-    
-    # İçerik kontrolü
-    feature_array = df[numeric_features].values
-    
-    # NaN veya inf değerleri kontrol et ve raporla
-    try:
-        has_nan = np.isnan(feature_array).any()
-        has_inf = np.isinf(feature_array).any()
-        
-        if has_nan or has_inf:
-            st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
-            # NaN değerleri sıfırla doldur
-            feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
-    except TypeError:
-        # Sayısal olmayan veriler için hata oluşursa, veriyi dönüştürmeye çalış
-        st.warning("Sayısal olmayan veriler tespit edildi. Otomatik dönüştürme yapılıyor.")
-        # Veriyi temizle - sayısal değerlere dönüştür veya temizle
+    # Tüm sütunların sayısal olduğundan emin ol
+    safe_numeric_features = []
+    for col in numeric_features:
         try:
-            # Veriyi float türüne dönüştürmeye çalış
-            feature_array = feature_array.astype(float)
-            
-            # Şimdi NaN ve inf kontrolü yapabiliriz
-            has_nan = np.isnan(feature_array).any()
-            has_inf = np.isinf(feature_array).any()
-            
-            if has_nan or has_inf:
-                st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
-                # NaN değerleri sıfırla doldur
-                feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
-        except (ValueError, TypeError):
-            # Dönüşüm hata verirse, her bir hücreyi ayrı ayrı kontrol edip düzelt
-            st.error("Veri dönüşümü başarısız oldu. Daha güçlü temizleme uygulanıyor.")
-            feature_array_list = []
-            for row in feature_array:
-                cleaned_row = []
-                for val in row:
-                    try:
-                        # String değilse ve sayısal bir değere dönüştürülebilirse
-                        if not isinstance(val, str):
-                            cleaned_val = float(val)
-                            # NaN veya inf ise 0 yap
-                            if np.isnan(cleaned_val) or np.isinf(cleaned_val):
-                                cleaned_val = 0.0
-                        else:
-                            # String ise 0 olarak işle
-                            cleaned_val = 0.0
-                    except (ValueError, TypeError):
-                        # Dönüştürülemiyorsa 0 yap
-                        cleaned_val = 0.0
-                    cleaned_row.append(cleaned_val)
-                feature_array_list.append(cleaned_row)
-            
-            feature_array = np.array(feature_array_list, dtype=float)
+            # Sütunun veri tipini kontrol et
+            if df[col].dtype == 'object':
+                # Sayısal değere dönüştürmeyi dene
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                
+            # NaN değerleri doldur
+            if df[col].isna().any():
+                df[col] = df[col].fillna(0)
+                
+            # Sütun hala sayısal mı kontrol et
+            if pd.api.types.is_numeric_dtype(df[col]):
+                safe_numeric_features.append(col)
+            else:
+                st.warning(f"'{col}' sütunu sayısal değil, atlanıyor.")
+        except Exception as e:
+            st.warning(f"'{col}' sütunu işlenirken hata: {str(e)}")
     
-    return scaler.fit_transform(feature_array)
+    if not safe_numeric_features:
+        st.error("Hiçbir sayısal özellik bulunamadı!")
+        # Boş bir array döndür
+        return np.zeros((len(df), 1))
+    
+    # Sadece sayısal sütunları kullan
+    feature_array = df[safe_numeric_features].values
+    
+    # NaN veya inf değerleri kontrol et ve temizle
+    feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+    
+    # Güncel scikit-learn sürümleriyle uyumlu StandardScaler kullanımı
+    if len(feature_array) > 0 and feature_array.size > 0:
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(feature_array)
+        return X_scaled
+    else:
+        st.error("Özellik dizisi boş!")
+        return np.zeros((len(df), 1))
 
 def train_som(X, grid_size, sigma, learning_rate, iterations):
     som = MiniSom(grid_size, grid_size, X.shape[1], sigma=sigma, learning_rate=learning_rate)
@@ -390,7 +371,7 @@ def preprocess_data_interactive():
                 
                 # Zaman damgası işleme
                 if "transaction.timestamp" in X_df.columns:
-                    X_df['transaction.timestamp'] = pd.to_datetime(X_df['transaction.timestamp'], errors='coerce')
+                    X_df['transaction.timestamp'] = pd.to_datetime(X_df['transaction.timestamp'], errors='coerce', format='mixed')
                     
                     if 'Saat' in time_features:
                         X_df['hour'] = X_df['transaction.timestamp'].dt.hour
@@ -447,22 +428,33 @@ def preprocess_data_interactive():
                 for col in num_columns:
                     X_encoded[col] = X_encoded[col].fillna(X_encoded[col].median())
                 
-                # Standartlaştırma
-                from sklearn.preprocessing import StandardScaler
+                # Sayısal olmayan sütunları kontrol et ve dönüştür
+                non_numeric_cols = [col for col in X_encoded.columns if X_encoded[col].dtype == 'object']
+                for col in non_numeric_cols:
+                    try:
+                        X_encoded[col] = pd.to_numeric(X_encoded[col], errors='coerce')
+                        # Dönüştürülen sütun için eksik değerleri doldur
+                        X_encoded[col] = X_encoded[col].fillna(0)
+                        num_columns.append(col)
+                    except:
+                        st.warning(f"'{col}' sütunu sayısal değere dönüştürülemedi, bu sütun atlanacak.")
+                        X_encoded = X_encoded.drop(columns=[col])
                 
-                scaler = StandardScaler()
+                # Sadece sayısal sütunları al
+                safe_columns = [col for col in num_columns if pd.api.types.is_numeric_dtype(X_encoded[col])]
+                
+                if not safe_columns:
+                    st.error("Hiçbir sayısal özellik bulunamadı!")
+                    return
                 
                 # İçerik kontrolü
-                feature_array = X_encoded.values
+                feature_array = X_encoded[safe_columns].values
                 
-                # NaN veya inf değerleri kontrol et ve raporla
-                has_nan = np.isnan(feature_array).any()
-                has_inf = np.isinf(feature_array).any()
+                # NaN veya inf değerleri doğrudan temizle
+                feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
                 
-                if has_nan or has_inf:
-                    st.warning(f"Verilerinizde NaN {has_nan} veya Infinity {has_inf} değerler bulundu. Bunlar temizleniyor.")
-                    # NaN değerleri sıfırla doldur
-                    feature_array = np.nan_to_num(feature_array, nan=0.0, posinf=0.0, neginf=0.0)
+                # Güncel scikit-learn sürümleriyle uyumlu StandardScaler kullanımı
+                scaler = StandardScaler()
                 
                 X_scaled = scaler.fit_transform(feature_array)
                 
