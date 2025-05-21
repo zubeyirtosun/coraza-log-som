@@ -14,97 +14,34 @@ import traceback
 
 class PDF(FPDF):
     """
-    DejaVu fontlarını kullanan PDF sınıfı
+    Temel PDF sınıfı - özel font kullanmadan çalışır
     """
     def __init__(self):
         super().__init__(orientation='P', unit='mm', format='A4')
-        # DejaVu fontlarını ekle (hata yönetimi ile)
-        try:
-            # Göreceli yolları kullan - bu dosyanın bulunduğu dizinden başla
-            # Üç farklı olası dizini kontrol et
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            possible_font_paths = [
-                os.path.join(current_dir, 'static_fonts'),           # 1. Seçenek: static_fonts dizini
-                os.path.join(current_dir, 'fonts', 'dejavu-fonts-ttf-2.37', 'ttf'),  # 2. Seçenek: ana font dizini
-                os.path.join('static_fonts')                          # 3. Seçenek: kök dizindeki static_fonts
-            ]
-            
-            # Var olan ilk font dizinini kullan
-            font_path = None
-            for path in possible_font_paths:
-                if os.path.exists(path) and os.path.isdir(path):
-                    font_path = path
-                    st.info(f"Font dizini bulundu: {path}")
-                    break
-            
-            if font_path is None:
-                st.warning("Hiçbir font dizini bulunamadı. Varsayılan fontlar kullanılacak.")
-                self.custom_fonts = False
-                self.add_page()
-                return
-            
-            # Font dosyalarının yolları
-            sans_path = os.path.join(font_path, 'DejaVuSans.ttf')
-            sans_bold_path = os.path.join(font_path, 'DejaVuSans-Bold.ttf')
-            sans_oblique_path = os.path.join(font_path, 'DejaVuSans-Oblique.ttf')
-            
-            # Font dosyalarının varlığını kontrol et
-            if not os.path.exists(sans_path) or not os.path.exists(sans_bold_path) or not os.path.exists(sans_oblique_path):
-                missing = []
-                if not os.path.exists(sans_path): missing.append("DejaVuSans.ttf")
-                if not os.path.exists(sans_bold_path): missing.append("DejaVuSans-Bold.ttf")
-                if not os.path.exists(sans_oblique_path): missing.append("DejaVuSans-Oblique.ttf")
-                
-                st.warning(f"Eksik font dosyaları: {', '.join(missing)}")
-                st.warning(f"Aranan dizin: {font_path}")
-                self.custom_fonts = False
-            else:
-                # Font dosyaları mevcutsa ekle
-                self.add_font('DejaVu', '', sans_path, uni=True)
-                self.add_font('DejaVu', 'B', sans_bold_path, uni=True)
-                self.add_font('DejaVu', 'I', sans_oblique_path, uni=True)
-                self.custom_fonts = True
-                st.success("Özel fontlar başarıyla yüklendi.")
-                
-        except Exception as e:
-            st.warning(f"Font yükleme hatası: {str(e)}")
-            st.warning(traceback.format_exc())
-            self.custom_fonts = False
-            
+        # Varsayılan fontları kullan (DejaVu yerine)
         self.add_page()
+        st.info("PDF oluşturucu başlatıldı (varsayılan fontlar kullanılıyor)")
 
     def header(self):
         # Başlık
-        if hasattr(self, 'custom_fonts') and self.custom_fonts:
-            self.set_font('DejaVu', 'B', 15)
-        else:
-            self.set_font('Arial', 'B', 15)
+        self.set_font('Arial', 'B', 15)
         self.cell(0, 10, 'SOM ve Meta Kumeleme Analizi Raporu', 0, 1, 'C')
         self.ln(10)
         
     def footer(self):
         # Sayfa numarası
         self.set_y(-15)
-        if hasattr(self, 'custom_fonts') and self.custom_fonts:
-            self.set_font('DejaVu', 'I', 8)
-        else:
-            self.set_font('Arial', 'I', 8)
+        self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Sayfa {self.page_no()}', 0, 0, 'C')
         
     def chapter_title(self, title):
-        if hasattr(self, 'custom_fonts') and self.custom_fonts:
-            self.set_font('DejaVu', 'B', 14)
-        else:
-            self.set_font('Arial', 'B', 14)
+        self.set_font('Arial', 'B', 14)
         self.ln(5)
         self.cell(0, 10, title, 0, 1, 'L')
         self.ln(5)
         
     def chapter_body(self, body):
-        if hasattr(self, 'custom_fonts') and self.custom_fonts:
-            self.set_font('DejaVu', '', 12)
-        else:
-            self.set_font('Arial', '', 12)
+        self.set_font('Arial', '', 12)
         self.multi_cell(0, 5, body)
         self.ln()
     
@@ -132,19 +69,13 @@ class PDF(FPDF):
         
         # Başlıklar varsa ekle
         if headers:
-            if hasattr(self, 'custom_fonts') and self.custom_fonts:
-                self.set_font('DejaVu', 'B', 10)
-            else:
-                self.set_font('Arial', 'B', 10)
+            self.set_font('Arial', 'B', 10)
             for header in headers:
                 self.cell(col_width, 7, str(header), 1, 0, 'C')
             self.ln()
         
         # Verileri ekle
-        if hasattr(self, 'custom_fonts') and self.custom_fonts:
-            self.set_font('DejaVu', '', 10)
-        else:
-            self.set_font('Arial', '', 10)
+        self.set_font('Arial', '', 10)
         for row in data:
             for item in row:
                 self.cell(col_width, 7, str(item), 1, 0, 'C')
@@ -374,125 +305,165 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
                     pdf.chapter_body(f"Bulunan Optimal Kume Sayisi: {advanced_results['optimal_k']}")
                     
                     if 'optimal_k_visualization' in advanced_results:
-                        # Görselleştirmeyi geçici dosyaya kaydet
-                        img_data = _base64_to_buffer(advanced_results['optimal_k_visualization'])
-                        temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'optimal_k.png')
-                        pdf.add_image(temp_file)
+                        try:
+                            # Görselleştirmeyi geçici dosyaya kaydet
+                            img_data = _base64_to_buffer(advanced_results['optimal_k_visualization'])
+                            temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'optimal_k.png')
+                            if temp_file and os.path.exists(temp_file):
+                                pdf.add_image(temp_file)
+                        except Exception as e:
+                            st.warning(f"Optimal küme görselleştirmesi eklenirken hata: {str(e)}")
                 
                 # Alternatif Kümeleme
                 if 'clustering_comparison' in advanced_results:
-                    pdf.chapter_title("Alternatif Kumeleme Algoritmalari")
-                    
-                    if 'metrics_df' in advanced_results['clustering_comparison']:
-                        metrics_df = advanced_results['clustering_comparison']['metrics_df']
-                        pdf.chapter_body("Kumeleme Algoritmalari Karsilastirma Metrikleri:")
+                    try:
+                        pdf.chapter_title("Alternatif Kumeleme Algoritmalari")
                         
-                        # Tabloyu görselleştir
-                        plt.figure(figsize=(10, 5))
-                        plt.axis('off')
-                        table_data = []
+                        if 'metrics_df' in advanced_results['clustering_comparison']:
+                            metrics_df = advanced_results['clustering_comparison']['metrics_df']
+                            pdf.chapter_body("Kumeleme Algoritmalari Karsilastirma Metrikleri:")
+                            
+                            # Tabloyu görselleştir
+                            plt.figure(figsize=(10, 5))
+                            plt.axis('off')
+                            table_data = []
+                            
+                            for idx, row in metrics_df.iterrows():
+                                table_data.append([
+                                    idx,  # Algoritma adı
+                                    f"{row['Silüet Skoru']:.4f}" if not pd.isna(row['Silüet Skoru']) else "N/A",
+                                    f"{row['Calinski-Harabasz']:.1f}" if not pd.isna(row['Calinski-Harabasz']) else "N/A",
+                                    f"{row['Davies-Bouldin']:.4f}" if not pd.isna(row['Davies-Bouldin']) else "N/A",
+                                    str(row['Küme Sayısı']) if not pd.isna(row['Küme Sayısı']) else "N/A"
+                                ])
+                            
+                            # Matplotlib tablo
+                            table_fig = plt.figure(figsize=(10, 5))
+                            ax = table_fig.add_subplot(111)
+                            ax.axis('off')
+                            table = ax.table(
+                                cellText=table_data,
+                                colLabels=['Algoritma', 'Silüet Skoru', 'Calinski-Harabasz', 'Davies-Bouldin', 'Küme Sayısı'],
+                                loc='center',
+                                cellLoc='center'
+                            )
+                            
+                            table.auto_set_font_size(False)
+                            table.set_fontsize(10)
+                            table.scale(1, 1.5)
+                            
+                            # Tabloyu dosyaya kaydet
+                            temp_file = os.path.join(temp_dir, 'clustering_table.png')
+                            plt.savefig(temp_file, format='png', bbox_inches='tight')
+                            plt.close()
+                            
+                            if os.path.exists(temp_file):
+                                pdf.add_image(temp_file)
                         
-                        for idx, row in metrics_df.iterrows():
-                            table_data.append([
-                                idx,  # Algoritma adı
-                                f"{row['Silüet Skoru']:.4f}",
-                                f"{row['Calinski-Harabasz']:.1f}",
-                                f"{row['Davies-Bouldin']:.4f}",
-                                str(row['Küme Sayısı'])
-                            ])
-                        
-                        # Matplotlib tablo
-                        table_fig = plt.figure(figsize=(10, 5))
-                        ax = table_fig.add_subplot(111)
-                        ax.axis('off')
-                        table = ax.table(
-                            cellText=table_data,
-                            colLabels=['Algoritma', 'Silüet Skoru', 'Calinski-Harabasz', 'Davies-Bouldin', 'Küme Sayısı'],
-                            loc='center',
-                            cellLoc='center'
-                        )
-                        
-                        table.auto_set_font_size(False)
-                        table.set_fontsize(10)
-                        table.scale(1, 1.5)
-                        
-                        # Tabloyu dosyaya kaydet
-                        temp_file = os.path.join(temp_dir, 'clustering_table.png')
-                        plt.savefig(temp_file, format='png', bbox_inches='tight')
-                        plt.close()
-                        
-                        pdf.add_image(temp_file)
-                    
-                    # Algoritma görselleştirmeleri
-                    if 'visualizations' in advanced_results['clustering_comparison']:
-                        visualizations = advanced_results['clustering_comparison']['visualizations']
-                        
-                        for algo_name, viz_data in visualizations.items():
-                            img_data = _base64_to_buffer(viz_data)
-                            temp_file = _save_visual_to_temp_file(img_data, temp_dir, f'clustering_{algo_name}.png')
-                            pdf.add_image(temp_file)
+                        # Algoritma görselleştirmeleri
+                        if 'visualizations' in advanced_results['clustering_comparison']:
+                            visualizations = advanced_results['clustering_comparison']['visualizations']
+                            
+                            for algo_name, viz_data in visualizations.items():
+                                try:
+                                    img_data = _base64_to_buffer(viz_data)
+                                    temp_file = _save_visual_to_temp_file(img_data, temp_dir, f'clustering_{algo_name}.png')
+                                    if temp_file and os.path.exists(temp_file):
+                                        pdf.add_image(temp_file)
+                                except Exception as e:
+                                    st.warning(f"{algo_name} görselleştirmesi eklenirken hata: {str(e)}")
+                    except Exception as e:
+                        st.warning(f"Kümeleme karşılaştırması eklenirken hata: {str(e)}")
                 
                 # Kümeleme Stabilitesi
                 if 'stability_analysis' in advanced_results:
-                    pdf.add_page()
-                    pdf.chapter_title("Kumeleme Stabilitesi Analizi")
-                    
-                    stability = advanced_results['stability_analysis']
-                    pdf.chapter_body(f"Ortalama Stabilite Skoru: {stability['stability_score']:.4f}")
-                    pdf.chapter_body("(Daha yüksek değer daha tutarlı kümeleme anlamına gelir)")
-                    
-                    if 'visualization' in stability:
-                        img_data = _base64_to_buffer(stability['visualization'])
-                        temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'stability.png')
-                        pdf.add_image(temp_file)
+                    try:
+                        pdf.add_page()
+                        pdf.chapter_title("Kumeleme Stabilitesi Analizi")
+                        
+                        stability = advanced_results['stability_analysis']
+                        pdf.chapter_body(f"Ortalama Stabilite Skoru: {stability['stability_score']:.4f}")
+                        pdf.chapter_body("(Daha yüksek değer daha tutarlı kümeleme anlamına gelir)")
+                        
+                        if 'visualization' in stability:
+                            img_data = _base64_to_buffer(stability['visualization'])
+                            temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'stability.png')
+                            if temp_file and os.path.exists(temp_file):
+                                pdf.add_image(temp_file)
+                    except Exception as e:
+                        st.warning(f"Stabilite analizi eklenirken hata: {str(e)}")
                 
                 # Boyut İndirgeme
                 if 'dimensionality_reduction' in advanced_results:
-                    pdf.add_page()
-                    pdf.chapter_title("Boyut Indirgeme Analizi")
-                    
-                    dim_reduction = advanced_results['dimensionality_reduction']
-                    
-                    for method, data in dim_reduction.items():
-                        if method not in ['pca_explained_variance', 'visualizations']:
-                            pdf.chapter_body(f"{method} Analizi:")
-                            
-                            if 'visualizations' in dim_reduction and method in dim_reduction['visualizations']:
-                                img_data = _base64_to_buffer(dim_reduction['visualizations'][method])
-                                temp_file = _save_visual_to_temp_file(img_data, temp_dir, f'dim_reduction_{method}.png')
-                                pdf.add_image(temp_file)
-                    
-                    # PCA varyans açıklama oranı
-                    if 'pca_explained_variance' in dim_reduction:
-                        pdf.chapter_body(f"PCA Kümülatif Varyans Açıklama Oranı: {dim_reduction['pca_explained_variance']:.2%}")
+                    try:
+                        pdf.add_page()
+                        pdf.chapter_title("Boyut Indirgeme Analizi")
+                        
+                        dim_reduction = advanced_results['dimensionality_reduction']
+                        
+                        for method, data in dim_reduction.items():
+                            if method not in ['pca_explained_variance', 'visualizations']:
+                                pdf.chapter_body(f"{method} Analizi:")
+                                
+                                if 'visualizations' in dim_reduction and method in dim_reduction['visualizations']:
+                                    try:
+                                        img_data = _base64_to_buffer(dim_reduction['visualizations'][method])
+                                        temp_file = _save_visual_to_temp_file(img_data, temp_dir, f'dim_reduction_{method}.png')
+                                        if temp_file and os.path.exists(temp_file):
+                                            pdf.add_image(temp_file)
+                                    except Exception as e:
+                                        st.warning(f"{method} görselleştirmesi eklenirken hata: {str(e)}")
+                        
+                        # PCA varyans açıklama oranı
+                        if 'pca_explained_variance' in dim_reduction:
+                            pdf.chapter_body(f"PCA Kümülatif Varyans Açıklama Oranı: {dim_reduction['pca_explained_variance']:.2%}")
+                    except Exception as e:
+                        st.warning(f"Boyut indirgeme analizi eklenirken hata: {str(e)}")
                 
                 # Çapraz Doğrulama
                 if 'cross_validation' in advanced_results:
-                    pdf.add_page()
-                    pdf.chapter_title("Capraz Dogrulama Sonuclari")
-                    
-                    cv_results = advanced_results['cross_validation']
-                    pdf.chapter_body(f"Ortalama Silüet Skoru: {cv_results['mean_silhouette']:.4f}")
-                    pdf.chapter_body(f"Standart Sapma: {cv_results['std_silhouette']:.4f}")
-                    
-                    if 'visualization' in cv_results:
-                        img_data = _base64_to_buffer(cv_results['visualization'])
-                        temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'cross_validation.png')
-                        pdf.add_image(temp_file)
+                    try:
+                        pdf.add_page()
+                        pdf.chapter_title("Capraz Dogrulama Sonuclari")
+                        
+                        cv_results = advanced_results['cross_validation']
+                        pdf.chapter_body(f"Ortalama Silüet Skoru: {cv_results['mean_silhouette']:.4f}")
+                        pdf.chapter_body(f"Standart Sapma: {cv_results['std_silhouette']:.4f}")
+                        
+                        if 'visualization' in cv_results:
+                            try:
+                                img_data = _base64_to_buffer(cv_results['visualization'])
+                                temp_file = _save_visual_to_temp_file(img_data, temp_dir, 'cross_validation.png')
+                                if temp_file and os.path.exists(temp_file):
+                                    pdf.add_image(temp_file)
+                            except Exception as e:
+                                st.warning(f"Çapraz doğrulama görselleştirmesi eklenirken hata: {str(e)}")
+                    except Exception as e:
+                        st.warning(f"Çapraz doğrulama sonuçları eklenirken hata: {str(e)}")
             
             # PDF'i oluştur
-            st.info("PDF dosyası kaydediliyor...")
-            pdf.output(temp_pdf_path)
-            
-            # PDF dosyasını oku ve BytesIO'ya aktar
-            with open(temp_pdf_path, 'rb') as pdf_file:
-                pdf_data = pdf_file.read()
-            
-            pdf_bytes = io.BytesIO(pdf_data)
-            pdf_bytes.seek(0)
-            
-            st.success("PDF raporu başarıyla oluşturuldu!")
-            return pdf_bytes
+            try:
+                st.info("PDF dosyası kaydediliyor...")
+                pdf.output(temp_pdf_path)
+                
+                # PDF dosyasını kontrol et
+                if not os.path.exists(temp_pdf_path) or os.path.getsize(temp_pdf_path) < 100:
+                    st.error("PDF dosyası oluşturulamadı veya dosya boyutu çok küçük.")
+                    return None
+                    
+                # PDF dosyasını oku ve BytesIO'ya aktar
+                with open(temp_pdf_path, 'rb') as pdf_file:
+                    pdf_data = pdf_file.read()
+                
+                pdf_bytes = io.BytesIO(pdf_data)
+                pdf_bytes.seek(0)
+                
+                st.success("PDF raporu başarıyla oluşturuldu!")
+                return pdf_bytes
+            except Exception as e:
+                st.error(f"PDF oluşturma işlemi başarısız: {str(e)}")
+                st.error(traceback.format_exc())
+                return None
             
         except Exception as e:
             st.error(f"PDF oluşturma hatası: {str(e)}")
