@@ -1,0 +1,248 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    apt update -y
+                    apt install python3-pip wget -y
+                    pip3 install flask --break-system-packages
+                '''
+            }
+        }
+
+        stage('Create Flask Application') {
+            steps {
+                script {
+                    def flaskAppCode = '''from flask import Flask, jsonify, request
+import os
+import json
+app = Flask(__name__)
+LOG_FILE_PATH = "./coraza/reports/audit.log"
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    try:
+        if not os.path.exists(LOG_FILE_PATH):
+            return jsonify({"error": "Log file not found"}), 404
+        logs = []
+        with open(LOG_FILE_PATH, 'r') as log_file:
+            for line in log_file:
+                try:
+                    log_entry = json.loads(line.strip())
+                    logs.append(log_entry)
+                except json.JSONDecodeError:
+                    continue
+        return jsonify(logs)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+'''
+            writeFile file: 'flask_app.py', text: flaskAppCode
+        }
+    }
+}
+
+        stage('Run Flask Application') {
+            steps {
+                script {
+                    sh 'nohup python3 flask_app.py &'
+                }
+            }
+        }
+
+        stage('Install Go If Missing') {
+            steps {
+                sh '''
+                    if ! command -v /usr/local/go/bin/go >/dev/null 2>&1; then
+                        echo "Go not found. Installing..."
+                        apt update -y
+                        apt remove golang-go -y || true
+                        apt purge golang-go -y || true
+                        rm -rf /usr/local/go || true
+
+                        LATEST_GO=$(curl -s https://go.dev/VERSION?m=text | head -n 1 | tr -d '[:space:]')
+                        wget https://go.dev/dl/${LATEST_GO}.linux-amd64.tar.gz
+                        tar -C /usr/local -xzf ${LATEST_GO}.linux-amd64.tar.gz
+                        rm ${LATEST_GO}.linux-amd64.tar.gz
+
+                        # PATH'i sistem genelinde tanımla
+                        echo 'export PATH=$PATH:/usr/local/go/bin' | tee /etc/profile.d/go.sh > /dev/null
+                        chmod +x /etc/profile.d/go.sh
+
+                        echo "Go installed successfully and PATH configured system-wide."
+                        /usr/local/go/bin/go version
+                    else
+                        echo "Go is already installed."
+                        /usr/local/go/bin/go version
+                    fi
+                    '''
+                    
+            }
+        }
+
+        stage('Install CorazaWAF') {
+            steps {
+                sh '''
+                mkdir -p coraza/reports
+                '''
+                script {
+                    def goModExists = fileExists('coraza/go.mod')
+                    if (goModExists) {
+                        sh 'cd coraza && /usr/local/go/bin/go mod tidy'
+                    } else {
+                        sh 'cd coraza && /usr/local/go/bin/go mod init deneme'
+                    }
+                    sh 'cd coraza && /usr/local/go/bin/go get github.com/corazawaf/coraza/v3'
+                }
+            }
+        }
+
+        stage('Write the Go File') {
+            steps {
+                script {
+                    def goCode = '''package main
+
+import (
+    "log"
+    "net/http"
+    "net/http/httputil"
+    "net/url"
+    "os"
+    "time"
+
+    "github.com/corazawaf/coraza/v3"
+    corazahttp "github.com/corazawaf/coraza/v3/http"
+)
+
+// loggingMiddleware, her isteğin performansını ölçer ve loglar
+func loggingMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        log.Println("Middleware başladı, istek alındı:", r.Method, r.URL.Path)
+        start := time.Now()
+        lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+        next.ServeHTTP(lrw, r)
+        duration := time.Since(start)
+        status := lrw.statusCode
+        log.Printf("İstek işlendi: %s %s - %d (%s)", r.Method, r.URL.Path, status, duration)
+    })
+}
+
+// loggingResponseWriter, durum kodunu yakalamak için bir yardımcı yapı
+type loggingResponseWriter struct {
+    http.ResponseWriter
+    statusCode int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+    lrw.statusCode = code
+    lrw.ResponseWriter.WriteHeader(code)
+}
+
+func main() {
+    // Reports dizinini oluştur
+    reportsDir := "./reports"
+    if err := os.MkdirAll(reportsDir, 0755); err != nil {
+        panic("Reports dizini oluşturulamadı: " + err.Error())
+    }
+
+    // Log dosyasını oluştur
+    logFile, err := os.OpenFile(reportsDir+"/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        panic("Log dosyası açılamadı: " + err.Error())
+    }
+    defer logFile.Close()
+
+    // Log çıktısını dosyaya yönlendir
+    log.SetOutput(logFile)
+    log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+    // WAF yapılandırması
+    directives := `SecRuleEngine On
+Include etc/crs4/crs-setup.conf
+Include etc/crs4/rules/*.conf
+SecAction "id:900110,phase:1,pass,nolog,setvar:tx.inbound_anomaly_score_threshold=5,setvar:tx.outbound_anomaly_score_threshold=4"
+SecRule REQUEST_URI "@streq /test" "id:1000,phase:1,deny,status:403"
+SecRequestBodyLimit 13107200
+SecResponseBodyLimit 524288
+SecAuditLog ./reports/audit.log
+SecAuditLogFormat JSON
+SecDebugLog ./reports/debug.log
+SecDebugLogLevel 9`
+
+    // Dosya yollarını kontrol et
+    if _, err := os.Stat("/etc/crs4/crs-setup.conf"); os.IsNotExist(err) {
+        log.Fatalf("crs-setup.conf dosyası bulunamadı: %v", err)
+    }
+    if _, err := os.Stat("/etc/crs4/rules"); os.IsNotExist(err) {
+        log.Fatalf("rules dizini bulunamadı: %v", err)
+    }
+
+    config := coraza.NewWAFConfig().
+        WithDirectives(directives).
+        WithRootFS(os.DirFS("/"))
+
+    waf, err := coraza.NewWAF(config)
+    if err != nil {
+        log.Fatalf("WAF oluşturulamadı: %v", err)
+    }
+
+    // Ters proxy hedefi: Jenkins sunucusu
+    target, _ := url.Parse("http://jenkins:8080")
+    proxy := httputil.NewSingleHostReverseProxy(target)
+    proxy.Director = func(req *http.Request) {
+        req.URL.Scheme = target.Scheme
+        req.URL.Host = target.Host
+        req.Host = target.Host
+    }
+
+    // WAF ile ters proxy entegrasyonu
+    handler := corazahttp.WrapHandler(waf, proxy)
+
+    // Logging middleware ile handler'ı sarmalama
+    loggedHandler := loggingMiddleware(handler)
+
+    // HTTP sunucusu başlatma
+    server := &http.Server{
+        Addr:    ":8091",
+        Handler: loggedHandler,
+    }
+
+    log.Println("Ters proxy ve WAF 8091 portunda başlatılıyor...")
+    if err := server.ListenAndServe(); err != nil {
+        log.Fatalf("Sunucu başlatılamadı: %v", err)
+    }
+}
+'''
+                    writeFile file: 'coraza/main.go', text: goCode
+                }
+            }
+        }
+
+        stage('Run Go Program') {
+            steps {
+                script {
+                    sh 'cd coraza && /usr/local/go/bin/go run main.go &'
+                }
+            }
+        }
+
+        stage('Verify Flask and Logs') {
+            steps {
+                script {
+                    sh 'curl http://localhost:5000/logs'
+                }
+            }
+        }
+        
+        stage('Wait There Darling') {
+            steps {
+                script {
+                    // Pipeline'ı askıya almak için
+                    input message: 'Devam etmek için bir tuşa basın'
+                }
+            }
+        }
+    }
+}

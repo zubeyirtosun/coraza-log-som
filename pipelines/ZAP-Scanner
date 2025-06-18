@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+    
+    environment {
+        ZAP_HOST = 'zapscanner'
+        ZAP_PORT = '8090'
+        TARGET_URL = 'http://172.19.0.4:8091'
+        //TARGET_URL = 'http://jenkins:8080'
+    }
+    
+    stages {
+        
+        stage('install jq in container') {
+            steps {
+                sh'''
+            apt update -y 
+            apt install jq -y
+            '''    
+            }
+        }
+        
+        stage('Add URL to ZAP') {
+            steps {
+                script {
+                    sh """
+                        curl -X GET "http://$ZAP_HOST:$ZAP_PORT/JSON/core/action/accessUrl/?url=${TARGET_URL}" \
+                             --header "Content-Type: application/json"
+                    """
+                    echo "Added ${TARGET_URL} to ZAP scan tree."
+                }
+            }
+        }
+        
+        stage('Start ZAP Scan') {
+            steps {
+                script {
+                    sh """
+                        curl -X GET "http://$ZAP_HOST:$ZAP_PORT/JSON/ascan/action/scan/?url=${TARGET_URL}&recurse=true" \
+                             --header "Content-Type: application/json"
+                    """
+                }
+            }
+        }
+        
+        stage('Wait for ZAP Scan to Complete') {
+            steps {
+                script {
+                    // a loop for controlling the scan state
+                    def scanStatus = ""
+                    while (scanStatus != "100") {
+                        scanStatus = sh(
+                            script: """
+                                curl -s -X GET "http://$ZAP_HOST:$ZAP_PORT/JSON/ascan/view/status/" \
+                                     --header "Content-Type: application/json" | jq -r '.status'
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        echo "Scan status: ${scanStatus}%"
+                        sleep(time: 10, unit: 'SECONDS') // check every 10 seconds
+                    }
+                    echo "ZAP scan completed."
+                }
+            }
+        }
+        
+        stage('Get ZAP Results') {
+            steps {
+                script {
+                    // take the results and save it in the reports folder
+                    def report = sh(
+                        script: """
+                            curl -s -X GET "http://$ZAP_HOST:$ZAP_PORT/JSON/core/view/alerts/?baseurl=${TARGET_URL}" \
+                                 --header "Content-Type: application/json"
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    
+                    sh 'mkdir -p reports'
+                    writeFile file: 'reports/zap-report.json', text: report
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            archiveArtifacts artifacts: 'reports/zap-report.json', allowEmptyArchive: true
+        }
+    }
+}

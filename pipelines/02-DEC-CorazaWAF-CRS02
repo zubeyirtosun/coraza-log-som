@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Downloading the Rule Set') {
+            steps {
+                sh '''
+                if [ ! -f v4.12.0.tar.gz ]; then
+                    echo "Rule set archive not found, downloading..."
+                    wget https://github.com/coreruleset/coreruleset/archive/refs/tags/v4.12.0.tar.gz
+                else
+                    echo "Rule set archive already exists, skipping download."
+                fi
+                '''
+            }
+        }
+        stage('Installing the Rule Set') {
+            steps {
+                sh '''
+                if [ ! -d /etc/crs4 ]; then
+                    echo "CRS directory not found, creating and extracting..."
+                    mkdir -p /etc/crs4
+                    tar -xzvf v4.12.0.tar.gz --strip-components 1 -C /etc/crs4
+                else
+                    echo "CRS directory already exists, skipping extraction."
+                fi
+                '''
+            }
+        }
+        stage('Setting Up the Main Configuration File') {
+            steps {
+                sh '''
+                if [ ! -f /etc/crs4/crs-setup.conf ]; then
+                    echo "Main configuration file not found, setting it up..."
+                    cd /etc/crs4
+                    mv crs-setup.conf.example crs-setup.conf
+                else
+                    echo "Main configuration file already exists, skipping setup."
+                fi
+                '''
+            }
+        }
+        /*stage('Include-ing the Rule Files for Apache') {
+            steps {
+                sh '''
+                if ! grep -q "/etc/crs4/crs-setup.conf" /etc/httpd/conf/httpd.conf; then
+                    echo "Including CRS rules in Apache configuration..."
+                    echo 'IncludeOptional /etc/crs4/crs-setup.conf' >> /etc/httpd/conf/httpd.conf
+                    echo 'IncludeOptional /etc/crs4/plugins/*-config.conf' >> /etc/httpd/conf/httpd.conf
+                    echo 'IncludeOptional /etc/crs4/plugins/*-before.conf' >> /etc/httpd/conf/httpd.conf
+                    echo 'IncludeOptional /etc/crs4/rules/*.conf' >> /etc/httpd/conf/httpd.conf
+                    echo 'IncludeOptional /etc/crs4/plugins/*-after.conf' >> /etc/httpd/conf/httpd.conf
+                    systemctl restart httpd.service
+                else
+                    echo "CRS rules already included in Apache configuration, skipping."
+                fi
+                '''
+            }
+        }*/
+    }
+}

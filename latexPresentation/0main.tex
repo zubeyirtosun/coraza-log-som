@@ -1,0 +1,115 @@
+%%%%%%%%Bilecik Şeyh Edebali Üniversitesi Mühendsilik Fakültesi%%%% 
+%%%%%%%%Bilgisayar Mühendisliği Bitirme Çalışması%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%LaTeX Class%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{BUB}
+
+\usepackage{subcaption}
+\usepackage{longtable}
+
+% JSON için listings tanımı
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{gray!10},
+    literate=
+     *{0}{{{\color{blue}0}}}{1}
+      {1}{{{\color{blue}1}}}{1}
+      {2}{{{\color{blue}2}}}{1}
+      {3}{{{\color{blue}3}}}{1}
+      {4}{{{\color{blue}4}}}{1}
+      {5}{{{\color{blue}5}}}{1}
+      {6}{{{\color{blue}6}}}{1}
+      {7}{{{\color{blue}7}}}{1}
+      {8}{{{\color{blue}8}}}{1}
+      {9}{{{\color{blue}9}}}{1}
+      {:}{{{\color{red}:}}}{1}
+      {,}{{{\color{red},}}}{1}
+      {\{}{{{\color{red}\{}}}{1}
+      {\}}{{{\color{red}\}}}}{1}
+      {[}{{{\color{red}[}}}{1}
+      {]}{{{\color{red}]}}}{1},
+    string=[s]{"}{"},
+    stringstyle=\color{green},
+    comment=[l]{//},
+    commentstyle=\color{gray},
+}
+
+% YAML için listings tanımı
+\lstdefinelanguage{yaml}{
+    keywords={true,false,null,y,n},
+    keywordstyle=\color{darkgray}\bfseries,
+    basicstyle=\YAMLkeystyle,
+    sensitive=false,
+    comment=[l]{\#},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{purple}\ttfamily,
+    stringstyle=\YAMLvaluestyle\ttfamily,
+    moredelim=[l][\color{orange}]{\&},
+    moredelim=[l][\color{magenta}]{*},
+    moredelim=**[il][\YAMLcolonstyle{:}\YAMLvaluestyle]{:},
+    morestring=[b]',
+    morestring=[b]",
+    literate =    {---}{{\ProcessThreeDashes}}3
+                  {>}{{\textcolor{red}{\textgreater}}}1     
+                  {|}{{\textcolor{red}{\textbar}}}1 
+                  {\ -\ }{{\mdseries\ -\ }}3,
+}
+
+% Groovy için listings tanımı
+\lstdefinelanguage{groovy}{
+    keywords={abstract,break,case,catch,class,const,continue,def,default,do,else,extends,false,finally,for,goto,if,implements,import,instanceof,interface,native,new,null,package,private,protected,public,return,static,super,switch,synchronized,this,throw,throws,transient,true,try,void,volatile,while},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={boolean,byte,char,double,float,int,long,short,void,String},
+    ndkeywordstyle=\color{darkgray}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{purple}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% YAML stil komutları
+\newcommand\YAMLcolonstyle{\color{red}\mdseries}
+\newcommand\YAMLkeystyle{\color{black}\bfseries}
+\newcommand\YAMLvaluestyle{\color{blue}\mdseries}
+\makeatletter
+\newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%Bitirme Çalışmasının Bölümleri%%%%%%%%%%%%%%% 
+% \include{1diskapak}
+\include{1kapak}
+\pagenumbering{roman} % romen rakamları kullanılmaya başlanıyor.
+\setcounter{page}{2}  % sayfa numarasını ii'den başlatılıyor.
+\include{2bildirim}
+%-----------------------------------------------------%
+\include{4ozetabstract}
+\include{5onsoz}
+\include{6icindekiler}
+\include{7sekiller_tablosu}
+\include{8cizelgeler_tablosu}
+\include{9simge_kisaltma}
+\pagenumbering{arabic}  % Sayfa numaralamasını arap rakamlarıyla yapar.
+\setcounter{page}{1}    % sayfa numarasını 1'den başlatır.
+\include{10giris}
+\include{11yazilim_yontem}
+\include{12uygulama}
+%\include{13ekbolum}
+\include{14bulgu_tartisma}
+\include{15sonuc_oneri}
+\include{16ekler}
+\include{17kaynaklar}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%BİTTİ%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 

@@ -1,0 +1,14 @@
+[server]
+enableXsrfProtection = false
+enableCORS = false
+maxUploadSize = 200
+
+[theme]
+base = "light"
+primaryColor = "#1e40af"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#0f172a"
+
+[font]
+sansSerif = "Inter, -apple-system, BlinkMacSystemFont, sans-serif" 

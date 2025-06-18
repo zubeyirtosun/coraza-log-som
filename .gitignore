@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Cache
+.cache/
+
+# Streamlit
+# .streamlit/config.toml
+
+# Temp files
+*.tmp
+temp/
+
+# Except fonts directory - specifically include this
+!static_fonts/
+!static_fonts/*.ttf
+!static_fonts/*.pkl
+!fonts/
+!fonts/**/*.ttf 

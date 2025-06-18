@@ -1,0 +1,167 @@
+{
+  "analiz_tarihi": "2025-06-16T21:16:39.840025",
+  "veri_kaynak": "Gerçek ZAP Scanner Logları",
+  "veri_analizi": {
+    "toplam_kayit": 2000,
+    "sutun_sayisi": 68,
+    "eksik_veri_orani": 41.81985294117647,
+    "zaman_araligi": {
+      "baslangic": "2025-04-14T08:19:13",
+      "bitis": "2025-04-15T08:18:54",
+      "sure_dakika": 1439.6833333333334
+    },
+    "traffic_analizi": {
+      "http_metodlari": {
+        "GET": 1523,
+        "POST": 171,
+        "HEAD": 107,
+        "OPTIONS": 106,
+        "PATCH": 93
+      },
+      "status_kodlari": {
+        "403": 965,
+        "200": 443,
+        "0": 298,
+        "401": 107,
+        "500": 77,
+        "404": 67,
+        "302": 38,
+        "502": 5
+      },
+      "engellenme_orani": 0.172
+    }
+  },
+  "som_performansi": {
+    "grid_boyutu": "15x15",
+    "toplam_iterasyon": 1000,
+    "quantization_error": 4.630018670065957,
+    "topological_error": 0.0225,
+    "aktif_noron_sayisi": 56,
+    "toplam_noron_sayisi": 225,
+    "noron_kullanim_orani": 0.24888888888888888
+  },
+  "kumeleme_karsilastirmasi": [
+    {
+      "algoritma": "KMeans",
+      "k_hedef": 3,
+      "k_gercek": 3,
+      "silhouette_score": 0.6300151453298531,
+      "calinski_harabasz": 3588.271512271202,
+      "davies_bouldin": 0.5590189463290415
+    },
+    {
+      "algoritma": "DBSCAN",
+      "k_hedef": 3,
+      "k_gercek": 45,
+      "silhouette_score": 0.9852807208677011,
+      "calinski_harabasz": 9789.985965706213,
+      "davies_bouldin": 1.1043600895934202
+    },
+    {
+      "algoritma": "AgglomerativeClustering",
+      "k_hedef": 3,
+      "k_gercek": 3,
+      "silhouette_score": 0.5964321629964726,
+      "calinski_harabasz": 2715.700050566394,
+      "davies_bouldin": 0.5171142981247722
+    },
+    {
+      "algoritma": "KMeans",
+      "k_hedef": 5,
+      "k_gercek": 5,
+      "silhouette_score": 0.5917921901136133,
+      "calinski_harabasz": 3998.2342051457485,
+      "davies_bouldin": 0.7180967626707936
+    },
+    {
+      "algoritma": "DBSCAN",
+      "k_hedef": 5,
+      "k_gercek": 45,
+      "silhouette_score": 0.9852807208677011,
+      "calinski_harabasz": 9789.985965706213,
+      "davies_bouldin": 1.1043600895934202
+    },
+    {
+      "algoritma": "AgglomerativeClustering",
+      "k_hedef": 5,
+      "k_gercek": 5,
+      "silhouette_score": 0.5696407463226294,
+      "calinski_harabasz": 3499.708566775683,
+      "davies_bouldin": 0.693480125184309
+    },
+    {
+      "algoritma": "KMeans",
+      "k_hedef": 8,
+      "k_gercek": 8,
+      "silhouette_score": 0.645242980848702,
+      "calinski_harabasz": 4892.3304402313715,
+      "davies_bouldin": 0.645988798481329
+    },
+    {
+      "algoritma": "DBSCAN",
+      "k_hedef": 8,
+      "k_gercek": 29,
+      "silhouette_score": 0.7633265926405821,
+      "calinski_harabasz": 4299.322518971129,
+      "davies_bouldin": 0.2995035642588305
+    },
+    {
+      "algoritma": "AgglomerativeClustering",
+      "k_hedef": 8,
+      "k_gercek": 8,
+      "silhouette_score": 0.6372371493766122,
+      "calinski_harabasz": 4359.166911255075,
+      "davies_bouldin": 0.6599389884856133
+    },
+    {
+      "algoritma": "KMeans",
+      "k_hedef": 10,
+      "k_gercek": 10,
+      "silhouette_score": 0.694893328941872,
+      "calinski_harabasz": 6746.892817382543,
+      "davies_bouldin": 0.5467820351209797
+    },
+    {
+      "algoritma": "DBSCAN",
+      "k_hedef": 10,
+      "k_gercek": 29,
+      "silhouette_score": 0.7633265926405821,
+      "calinski_harabasz": 4299.322518971129,
+      "davies_bouldin": 0.2995035642588305
+    },
+    {
+      "algoritma": "AgglomerativeClustering",
+      "k_hedef": 10,
+      "k_gercek": 10,
+      "silhouette_score": 0.6757493604849065,
+      "calinski_harabasz": 6140.847203149646,
+      "davies_bouldin": 0.5922073709467363
+    }
+  ],
+  "bulgular": {
+    "veri_karakteristikleri": {
+      "toplam_log_sayisi": 2000,
+      "analiz_edilen_ozellik_sayisi": "15x15",
+      "veri_kalitesi": "Orta",
+      "zaman_kapsamı_dakika": 1439.6833333333334
+    },
+    "som_algoritma_performansi": {
+      "quantization_error": 4.630018670065957,
+      "topological_error": 0.0225,
+      "nöron_kullanim_orani": 0.24888888888888888,
+      "degerlendirme": "Orta"
+    },
+    "meta_kumeleme_sonuclari": {
+      "en_iyi_algoritma": "DBSCAN",
+      "optimal_kume_sayisi": 45,
+      "silhouette_score": 0.9852807208677011,
+      "kalite_degerlendirmesi": "Yüksek"
+    },
+    "guvenlik_bulgulari": {
+      "engellenme_orani": 0.172,
+      "risk_seviyesi": "Orta",
+      "tespit_edilen_saldiri_desenleri": [],
+      "anomali_tespiti": "BMU dağılımında anormallik tespit edildi"
+    }
+  }
+}

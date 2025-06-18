@@ -1,0 +1,34 @@
+\pagenumbering{roman}
+\newpage
+\begin{center}
+\large \textbf{ÖZET}
+\end{center}
+
+Bu çalışmada, Coraza WAF log kayıtlarını SOM algoritması ile analiz ederek anormal davranış kalıplarını tespit eden ve güvenlik olaylarını görselleştiren bir sistem geliştirilmiştir. Sistem, Jenkins entegrasyonu ile sürekli entegrasyon/sürekli dağıtım (CI/CD) pipeline'ı üzerinde çalışmakta ve OWASP ZAP (Zed Attack Proxy) ile otomatik güvenlik taramalarını gerçekleştirmektedir.
+
+Geliştirilen sistemin temelinde Self-Organizing Map (SOM) algoritması kullanılarak log verilerinin kümelenmesi ve anormal davranışların tespiti yer almaktadır. SOM, yüksek boyutlu log verilerini iki boyutlu bir haritada görselleştirerek benzer davranış kalıplarını gruplandırmakta ve potansiyel güvenlik tehditlerini vurgulamaktadır. Sistem, adaptif grid boyutlandırma formülü ($\sqrt{5 \cdot \sqrt{n}}$) ile otomatik parametre optimizasyonu sağlamaktadır.
+
+Sistem, Streamlit framework'ü üzerinde geliştirilmiş interaktif web arayüzü ile kullanıcılara kapsamlı log analizi, görselleştirme ve raporlama imkanları sunmaktadır. Jenkins otomasyonu sayesinde Coraza WAF ve OWASP Core Rule Set (CRS) kurulumları otomatik olarak gerçekleştirilmekte, güvenlik taramaları periyodik olarak yapılmakta ve sonuçlar JSON formatında log dosyalarına kaydedilmektedir.
+
+Geliştirilen sistem, 2,000 kayıtlık gerçek ZAP Scanner güvenlik test verisi ile doğrulanmış olup, DBSCAN algoritması 0.985 silhouette skor ile yüksek performans sergilemiştir. Meta-kümeleme (K-means, DBSCAN, Hierarchical), boyut indirgeme (PCA, t-SNE, UMAP), anomali tespiti ve PDF rapor üretimi gibi gelişmiş analiz modülleri entegre edilmiştir. Sistem, farklı JSON formatlarını işleyebilmekte ve gerçek güvenlik verisi üzerinde etkili analiz sonuçları üretmektedir.
+
+\textbf{Anahtar Kelimeler:} Web Application Firewall, Self-Organizing Map, Log Analizi, Jenkins CI/CD, OWASP ZAP, Güvenlik Analizi, Anomali Tespiti, Meta-Kümeleme, Boyut İndirgeme
+
+\newpage
+\begin{center}
+\large \textbf{ABSTRACT}
+\end{center}
+
+In this study, a system has been developed that analyzes Coraza WAF log records using the SOM algorithm to detect abnormal behavior patterns and visualize security events. The system operates on a continuous integration/continuous deployment (CI/CD) pipeline with Jenkins integration and performs automated security scans using OWASP ZAP (Zed Attack Proxy).
+
+The core of the developed system is based on clustering log data and detecting anomalous behaviors using the Self-Organizing Map (SOM) algorithm. SOM visualizes high-dimensional log data on a two-dimensional map, grouping similar behavior patterns and highlighting potential security threats. The system provides automatic parameter optimization with adaptive grid sizing formula ($\sqrt{5 \cdot \sqrt{n}}$).
+
+The system provides users with comprehensive log analysis, visualization, and reporting capabilities through an interactive web interface developed using the Streamlit framework. Through Jenkins automation, Coraza WAF and OWASP Core Rule Set (CRS) installations are performed automatically, security scans are conducted periodically, and results are recorded in log files in JSON format.
+
+The developed system has been validated with 2,000 real ZAP Scanner security test data records, with the DBSCAN algorithm achieving high performance with a 0.985 silhouette score. Advanced analysis modules such as meta-clustering (K-means, DBSCAN, Hierarchical), dimensionality reduction (PCA, t-SNE, UMAP), anomaly detection, and PDF report generation have been integrated. The system can process different JSON formats and produces effective analysis results on real security data.
+
+\textbf{Keywords:} Web Application Firewall, Self-Organizing Map, Log Analysis, Jenkins CI/CD, OWASP ZAP, Security Analysis, Anomaly Detection, Meta-Clustering, Dimensionality Reduction
+
+\pagebreak{}
+
+

@@ -1,0 +1,127 @@
+\section{GİRİŞ}
+
+Günümüzde web uygulamaları, işletmelerin dijital varlıklarının temelini oluşturmakta ve bu uygulamalara yönelik siber saldırılar her geçen gün artmaktadır \cite{web_attacks_taxonomy2020}. Web Application Firewall (WAF) sistemleri, web uygulamalarını çeşitli güvenlik tehditlerinden korumak için kritik bir güvenlik katmanı sağlamaktadır \cite{waf_security2022}. Ancak bu sistemler tarafından üretilen log kayıtları, büyük veri hacmi nedeniyle manuel analiz imkânsız hale gelmektedir \cite{log_analysis_ml2020}.
+
+Modern siber tehdit ortamında, geleneksel kural tabanlı güvenlik yaklaşımları tek başına yetersiz kalmaktadır. Bu nedenle, makine öğrenmesi tabanlı anomali tespit sistemlerine duyulan ihtiyaç artmaktadır \cite{chandola2009anomaly}. Özellikle Self-Organizing Map (SOM) algoritması, yüksek boyutlu güvenlik verilerinin analizi için önemli avantajlar sunmaktadır \cite{som_cybersecurity2021}.
+
+Bu çalışma kapsamında, Coraza Web Application Firewall \cite{coraza2023} tarafından üretilen log verilerini otomatik olarak analiz eden ve güvenlik tehditlerini tespit eden kapsamlı bir sistem geliştirilmiştir. Sistem, SOM algoritması \cite{kohonen2001self,som_algoritmasi2020} kullanarak log verilerini kümelemekte ve anormal davranış kalıplarını tespit etmektedir.
+
+\subsection{Problemin Tanımı ve Motivasyon}
+
+Web uygulamalarına yönelik saldırılar gün geçtikçe daha karmaşık hale gelmekte ve geleneksel güvenlik çözümleri bu tehditleri tespit etmekte yetersiz kalmaktadır. WAF sistemleri büyük miktarda log verisi üretmekte, ancak bu verilerin manuel olarak analiz edilmesi hem zaman alıcı hem de hataya açık bir süreç oluşturmaktadır.
+
+Mevcut durumda karşılaşılan temel problemler şunlardır:
+
+\begin{itemize}
+    \item \textbf{Veri Hacmi Sorunu:} WAF sistemleri günde milyonlarca log kaydı üretebilmekte
+    \item \textbf{Gerçek Zamanlı Analiz İhtiyacı:} Saldırıların erken tespiti için hızlı analiz gereklidir
+    \item \textbf{False Positive Oranları:} Geleneksel sistemlerde yüksek yanlış alarm oranları
+    \item \textbf{Uzman Personel Eksikliği:} Güvenlik analistlerinin yorumlama sürecindeki subjektiflik
+    \item \textbf{Saldırı Türü Çeşitliliği:} Farklı saldırı türlerinin benzer özelliklere sahip olması
+    \item \textbf{Adaptasyon Yetersizliği:} Yeni saldırı türlerine karşı sistemlerin adaptasyon zorluğu
+\end{itemize}
+
+\newpage
+
+Bu problemler, otomatik ve akıllı güvenlik analiz sistemlerine olan ihtiyacı ortaya koymaktadır. SOM algoritmasının denetimsiz öğrenme yeteneği ve topological özellikler koruması, WAF log verilerindeki gizli kalıpların ortaya çıkarılması açısından kritik önem taşımaktadır.
+
+\subsection{Çalışmanın Amacı ve Hedefleri}
+
+Bu çalışmanın temel amacı, Coraza WAF log verilerini otomatik olarak analiz ederek güvenlik tehditlerini erken tespit edebilen kapsamlı bir sistem geliştirmektir. Sistem aşağıdaki ana hedefleri karşılamayı amaçlamaktadır:
+
+\begin{itemize}
+    \item \textbf{Otomatik Kümeleme:} SOM algoritması ile log verilerinin otomatik kümelenmesi \cite{som_network_security2018,ozkan2019som_guvenlik}
+\item \textbf{Anomali Tespiti:} Anormal trafik kalıplarının görsel ve istatistiksel olarak tespit edilmesi \cite{vesanto2000som,gultekin2020anomali_tespit}
+    \item \textbf{CI/CD Entegrasyonu:} Jenkins entegrasyonu ile otomatik güvenlik tarama süreci \cite{jenkins2023,torun2019jenkinsci}
+    \item \textbf{Gerçek Zamanlı Analiz:} Canlı log analizi ve raporlama yetenekleri
+    \item \textbf{Güvenlik Testi Otomasyonu:} OWASP ZAP \cite{owasp_zap} ile entegre güvenlik testi ve OWASP standartlarının Türkiye'deki uygulamaları \cite{aydin2021owasp_turkiye}
+    \item \textbf{Kullanıcı Deneyimi:} Streamlit ile kullanıcı dostu interaktif web arayüzü \cite{streamlit2023}
+    \item \textbf{Kapsamlı Raporlama:} PDF formatında detaylı analiz raporları
+\end{itemize}
+
+\subsection{Çalışmanın Kapsamı ve Katkıları}
+
+Bu çalışma, aşağıdaki bileşenleri içeren kapsamlı bir güvenlik analiz sistemi geliştirmeyi amaçlamaktadır:
+
+\subsubsection{Sistem Bileşenleri}
+
+\begin{itemize}
+    \item \textbf{WAF Entegrasyonu:} Coraza WAF ve OWASP Core Rule Set (CRS) \cite{owasp_crs} kurulumu ve log madenciliği teknikleri \cite{arslan2020log_madenciligi}
+    \item \textbf{Otomatik Tarama:} Jenkins pipeline ile OWASP ZAP güvenlik taramaları
+    \item \textbf{Log Analizi:} Python tabanlı SOM algoritması ile gelişmiş veri kümeleme \cite{python_security2021,celik2020python_guvenlik}
+    \item \textbf{Meta-Kümeleme:} K-means, DBSCAN, Hierarchical clustering algoritmaları
+    \item \textbf{Boyut İndirgeme:} PCA, t-SNE, UMAP teknikleri ile veri görselleştirme
+    \item \textbf{İnteraktif Arayüz:} Streamlit ile gerçek zamanlı veri analiz dashboard'u
+    \item \textbf{Raporlama Sistemi:} FPDF ile otomatik PDF rapor üretimi
+\end{itemize}
+
+\newpage
+
+\subsubsection{Bilimsel ve Teknik Katkılar}
+
+Bu çalışmanın güvenlik alanına sağladığı temel katkılar:
+
+\begin{enumerate}
+    \item \textbf{Metodolojik Katkılar:}
+    \begin{itemize}
+        \item SOM algoritmasının WAF log analizi alanında kapsamlı uygulanması
+        \item Adaptif grid boyutlandırma formülü ($\sqrt{5 \cdot \sqrt{n}}$) geliştirilmesi
+        \item Hibrit anomali tespit yaklaşımının oluşturulması
+    \end{itemize}
+    
+    \item \textbf{Teknik Katkılar:}
+    \begin{itemize}
+        \item Jenkins tabanlı otomatik güvenlik testi pipeline'ı
+        \item Çoklu JSON format desteği ile esnek veri işleme
+        \item Gerçek zamanlı interaktif analiz platformu
+    \end{itemize}
+    
+    \item \textbf{Uygulama Katkıları:}
+    \begin{itemize}
+        \item Açık kaynak güvenlik araçları entegrasyonu
+        \item Ölçeklenebilir mikroservis mimarisi
+        \item Kapsamlı validasyon ve test stratejileri
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Metodoloji ve Yaklaşım}
+
+Sistem geliştirme sürecinde aşağıdaki metodoloji benimsenmiştir:
+
+\textbf{1. Araştırma ve Analiz Aşaması:} WAF teknolojileri, SOM algoritması ve güvenlik log analizi konularında detaylı literatür araştırması yapılmıştır \cite{som_cybersecurity2021}.
+
+\textbf{2. Sistem Tasarımı:} Mikroservis mimarisi benimsenerek bileşenler arası entegrasyon planlanmış ve ölçeklenebilir yapı tasarlanmıştır \cite{docker2023}.
+
+\textbf{3. Geliştirme Süreci:} Agile metodoloji kullanılarak iteratif geliştirme yaklaşımı benimsenmiş ve sürekli entegrasyon prensipleri uygulanmıştır \cite{devops_security2022}.
+
+\textbf{4. Test ve Validasyon:} Kapsamlı test stratejileri ile sistem güvenilirliği sağlanmış ve fonksiyonellik testleri gerçekleştirilmiştir.
+
+\newpage
+
+\textbf{5. Sistem Implementasyonu ve Değerlendirme:} Geliştirilen sistemin temel fonksiyonları test edilmiş ve performans metrikleri değerlendirilmiştir. Gerçek WAF log verisi ile kapsamlı performans analizi gelecek çalışmalar için planlanmıştır.
+
+\subsection{Çalışmanın Sınırlılıkları}
+
+Bu çalışmanın aşağıdaki sınırlılıkları bulunmaktadır:
+
+\begin{itemize}
+    \item \textbf{Veri Seti Sınırı:} Sistem öncelikle Coraza WAF log formatına optimize edilmiştir
+    \item \textbf{Performans Değerlendirme:} Gerçek üretim ortamı verileri ile kapsamlı test henüz yapılmamıştır
+    \item \textbf{Ölçeklenebilirlik:} Mevcut implementasyon tek makine ortamında test edilmiştir
+    \item \textbf{Güvenlik Analizi:} Sistemin güvenlik etkinliği simüle edilmiş veriler ile değerlendirilmiştir
+\end{itemize}
+
+\subsection{Tezin Organizasyonu}
+
+Bu tez altı ana bölümden oluşmaktadır:
+
+\begin{itemize}
+    \item \textbf{Bölüm 1 - Giriş:} Problemin tanımı, motivasyon, amaç ve kapsam
+    \item \textbf{Bölüm 2 - Yazılım ve Yöntem:} Kullanılan teknolojiler, SOM algoritması detayları ve sistem mimarisi
+    \item \textbf{Bölüm 3 - Uygulama:} Sistem implementasyonu, bileşen entegrasyonu ve geliştirme süreci
+    \item \textbf{Bölüm 4 - Bulgular ve Tartışma:} Test sonuçları, performans metrikleri ve sistem değerlendirmesi
+    \item \textbf{Bölüm 5 - Sonuç ve Öneriler:} Çalışmanın sonuçları, katkıları ve gelecek çalışma önerileri
+    \item \textbf{Bölüm 6 - Ekler:} Ek dökümanlar, kod örnekleri ve teknik detaylar
+\end{itemize}
+
+Bu sistematik yaklaşım, çalışmanın bilimsel değerini artırmakta ve gelecek araştırmalar için sağlam bir temel oluşturmaktadır.

@@ -1,0 +1,56 @@
+\section{EKLER}
+
+\subsection{Proje Kaynak Kodları ve Çalışan Sistem}
+
+Bu projede geliştirilen sistemin kaynak kodlarına ve çalışan web uygulamasına aşağıdaki linklerden erişilebilir:
+
+\subsubsection{GitHub Repository}
+Projenin tüm kaynak kodları, dokümantasyon ve geliştirme tarihçesi:
+
+\textbf{Repository URL:} \url{https://github.com/zubeyirtosun/coraza-log-som}
+
+Bu repository'de yer alan ana bileşenler:
+\begin{itemize}
+    \item Python kaynak kodları (data\_processing.py, advanced\_clustering.py, visualizations.py)
+    \item Streamlit web uygulaması (main.py)
+    \item Gereksinim dosyaları (requirements.txt, packages.txt)
+    \item Örnek log verileri (logFiles/)
+    \item Dokümantasyon ve README dosyaları
+\end{itemize}
+
+\subsubsection{Çalışan Web Uygulaması}
+Sistemin canlı demo versiyonuna Streamlit Cloud üzerinden erişim:
+
+\textbf{Uygulama URL:} \url{https://coraza-log-som.streamlit.app/}
+
+Web uygulaması özellikleri:
+\begin{itemize}
+    \item Gerçek zamanlı log analizi
+    \item İnteraktif SOM görselleştirmesi
+    \item Meta-kümeleme algoritmaları karşılaştırması
+    \item PDF rapor üretimi
+    \item Boyut indirgeme analizi (PCA, t-SNE, UMAP)
+\end{itemize}
+
+\newpage
+
+\subsection{Sistem Kullanım Kılavuzu}
+
+\subsubsection{Yerel Kurulum}
+\begin{enumerate}
+    \item Repository'yi klonlayın: 
+    
+    \texttt{git clone https://github.com/zubeyirtosun/coraza-log-som}
+    \item Gerekli paketleri yükleyin: \texttt{pip install -r requirements.txt}
+    \item Uygulamayı başlatın: \texttt{streamlit run main.py}
+\end{enumerate}
+
+\subsubsection{Web Uygulaması Kullanımı}
+\begin{enumerate}
+    \item Tarayıcınızda \url{https://coraza-log-som.streamlit.app/} adresini açın
+    \item Sol menüden analiz türünü seçin
+    \item JSON formatında log dosyanızı yükleyin veya örnek veri kullanın
+    \item SOM parametrelerini ayarlayın
+    \item Analiz sonuçlarını ve görselleştirmeleri inceleyin
+    \item İsteğe bağlı olarak PDF raporu indirin
+\end{enumerate} 

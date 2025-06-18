@@ -1,0 +1,119 @@
+\section{SONUÇ VE ÖNERİLER}
+
+Bu çalışmada, Coraza Web Application Firewall log verilerini Self-Organizing Map (SOM) algoritması ile analiz ederek güvenlik tehditlerini otomatik olarak tespit eden kapsamlı bir sistem geliştirilmiştir. Sistem, MiniSom kütüphanesi, Streamlit web çerçevesi ve çeşitli Python veri analizi araçları ile birlikte çalışan bütüncül bir güvenlik analiz platformu sunmaktadır. Türkiye'deki WAF kullanımı ve güvenlik durumu \cite{koc2022waf_turkiye,tbd_rapor2022} göz önünde bulundurularak yerel ihtiyaçlara uygun bir çözüm geliştirilmiştir.
+
+\subsection{Temel Başarılar}
+
+Gerçekleştirilen geliştirme çalışmaları sonucunda aşağıdaki temel başarılara ulaşılmıştır:
+
+\subsubsection{Sistem Implementasyonu}
+
+Geliştirilen sistem, aşağıdaki temel fonksiyonları başarıyla yerine getirmektedir:
+
+\begin{itemize}
+    \item \textbf{Çoklu JSON Format Desteği:} Transaction wrapper ve düz JSON formatlarının işlenmesi
+    \item \textbf{Otomatik Veri Önişleme:} Eksik veri işleme, one-hot encoding ve özellik çıkarımı
+    \item \textbf{SOM Algoritması Implementasyonu:} MiniSom kütüphanesi ile etkili SOM eğitimi
+    \item \textbf{İnteraktif Görselleştirme:} Streamlit ve Plotly ile kullanıcı dostu arayüz
+    \item \textbf{Meta-Kümeleme Desteği:} K-means, DBSCAN ve Hiyerarşik kümeleme algoritmaları
+    \item \textbf{Boyut İndirgeme:} PCA, t-SNE, UMAP teknikleri ile veri görselleştirme
+    \item \textbf{Performans Metrikleri:} Silüet analizi, Calinski-Harabasz ve Davies-Bouldin indeksleri
+    \item \textbf{Oturum Durumu Yönetimi:} Streamlit oturum durumu ile kullanıcı oturumu korunması
+\end{itemize}
+
+\subsubsection{Teknik Katkılar}
+
+\begin{enumerate}
+    \item \textbf{Adaptif Grid Boyutlandırma:} $\sqrt{5 \cdot \sqrt{n}}$ formülü ile otomatik SOM grid boyutu hesaplama
+    
+    \item \textbf{Esnek Veri İşleme:} Farklı WAF log formatlarını standart hale getiren veri normalleştirme modülü
+    
+    \item \textbf{Modüler Mimari:} Bağımsız modüllerle genişletilebilir sistem tasarımı
+\end{enumerate}
+
+\newpage
+
+\subsection{Bilimsel Katkılar}
+
+Bu çalışmanın güvenlik alanına sağladığı temel katkılar şunlardır:
+
+\subsubsection{Metodolojik Katkılar}
+
+\begin{enumerate}
+    \item \textbf{SOM Tabanlı WAF Analizi:} Self-Organizing Map algoritmasının web application firewall log analizi alanında kapsamlı uygulanması
+    
+    \item \textbf{Hibrit Anomali Tespit Yaklaşımı:} Quantization error ve meta-kümeleme algoritmalarının birlikte kullanılması
+    
+    \item \textbf{İnteraktif Analiz Platformu:} Streamlit tabanlı gerçek zamanlı veri keşfi arayüzü
+    
+    \item \textbf{Çok Boyutlu Görselleştirme:} SOM, PCA, t-SNE görselleştirmelerinin entegre kullanımı
+\end{enumerate}
+
+\subsection{Sistem Özellikleri ve Yetenekleri}
+
+Geliştirilen sistem aşağıdaki temel yetenekleri sunmaktadır:
+
+\subsubsection{Veri İşleme Yetenekleri}
+
+\begin{itemize}
+    \item JSON dosya yükleme ve parsing
+    \item Otomatik veri tipi tespiti ve dönüştürme
+    \item Eksik veri için varsayılan değer atama
+    \item Kategorik verilerin one-hot encoding ile dönüştürülmesi
+    \item Zaman damgası işleme ve özellik çıkarımı
+\end{itemize}
+
+\subsubsection{Analiz Yetenekleri}
+
+\begin{itemize}
+    \item SOM ağı eğitimi ve BMU hesaplama
+    \item Quantization error hesaplama
+    \item Meta-kümeleme algoritmaları uygulama
+    \item Silhouette analysis ile küme kalitesi değerlendirme
+    \item İnteraktif görselleştirme üretimi
+\end{itemize}
+
+\newpage
+
+\subsection{Sistem Sınırlılıkları}
+
+Geliştirme sürecinde tespit edilen temel sınırlılıklar:
+
+\subsubsection{Teknik Sınırlılıklar}
+
+\begin{enumerate}
+    \item \textbf{Veri Format Bağımlılığı:} Sistem, belirli JSON yapıları gerektirir
+    
+    \item \textbf{Ölçeklenebilirlik Sınırları:} Tek makine üzerinde çalışma sınırlaması
+    
+    \item \textbf{Bellek Kullanımı:} Büyük veri setlerinde yüksek RAM gereksinimi
+    
+    \item \textbf{İşleme Süresi:} SOM eğitimi için zaman gereksinimi
+\end{enumerate}
+
+\subsubsection{Fonksiyonel Sınırlılıklar}
+
+\begin{enumerate}
+    \item \textbf{Toplu İşleme Odaklı:} Gerçek zamanlı akan veri analizi sınırlı
+    
+    \item \textbf{Tek Makine Sınırlaması:} Dağıtık işleme desteği yok
+    
+    \item \textbf{Veri Doğrulama:} Giriş doğrulama mekanizmaları geliştirilmeli
+    
+    \item \textbf{Manuel Parametre Ayarlama:} Optimal performans için uzman müdahalesi
+    
+    \item \textbf{Sınırlı Hata Kurtarma:} Sistem hatalarında kısıtlı recovery mekanizması
+\end{enumerate}
+
+\subsection{Sonuç}
+
+Bu çalışma, Self-Organizing Map algoritmasının web application firewall log analizi alanında uygulanabilirliğini göstermiş ve fonksiyonel bir sistem prototipi geliştirmiştir. Sistem, modern Python veri analizi araçları ile entegre edilmiş, kullanıcı dostu bir arayüz sunmaktadır.
+
+Geliştirilen sistemin temel başarısı, farklı JSON formatlarını işleyebilme, otomatik SOM eğitimi gerçekleştirme ve interaktif görselleştirme sağlama yetenekleridir. Ancak, sistemin gerçek güvenlik analizi performansının değerlendirilmesi için kapsamlı test verisi ile deneysel çalışmalar yapılması gerekmektedir.
+
+Bu çalışmanın, siber güvenlik alanında makine öğrenmesi tabanlı çözümlerin geliştirilmesine metodolojik katkı sağladığı ve gelecek araştırmalar için sağlam bir temel oluşturduğu değerlendirilmektedir.
+
+\textbf{Önemli Not:} Bu çalışmada sunulan sonuçlar, sistem geliştirme ve fonksiyonellik testlerine dayanmaktadır. Gerçek güvenlik analizi performansı için, gerçek WAF log verisi ile kapsamlı deneysel çalışmalar yapılması kritik önem taşımaktadır.
+
+
+

@@ -1,0 +1,30 @@
+% kaynak başlığını tanımlar
+%fix spacing in bibliography, if any...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \let\oldbibitem\bibitem
+% \renewcommand{\bibitem}{\setlength{\itemsep}{0pt}\oldbibitem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%The bibliography style declared is the plain format. If
+%you require a different style, see the document
+%bibstyles.pdf included in this package. This file,
+%hosted by the University of Vienna, shows several
+%bibliography styles and examples of in-text citation
+%and a references page.
+\bibliographystyle{plain}
+% \renewcommand{\bibname}{KAYNAKLAR} % Otomatik başlığı değiştir
+
+\phantomsection
+\addcontentsline{toc}{section}{KAYNAKLAR} % İçindekilere ekler
+\renewcommand{\refname}{\MakeUppercase{KAYNAKLAR}}
+
+\bibliography{referans}
+
+
+
+
+% \begin{thebibliography}{99} %kaynak ortamı 
+% \bibitem{k1}\url{https://store.steampowered.com/app/375820/Human_Resource_Machine/} [Ziyaret Tarihi: 30 Mayıs 2022]
+% \bibitem{k2}\url{https://tr.wikipedia.org/wiki/GitHub} [Ziyaret Tarihi: 6 Nisan 2022]
+% \bibitem{k3}\url{https://sungraphica.itch.io/sci-fi-game-ui-collection-free-version} [Ziyaret Tarihi: 6 Nisan 2022] 
+%  [Ziyaret Tarihi: 6 Nisan 2022] 
+% \end{thebibliography}
