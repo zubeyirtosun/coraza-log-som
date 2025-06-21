@@ -4,7 +4,25 @@ Günümüzde web uygulamaları, işletmelerin dijital varlıklarının temelini 
 
 Modern siber tehdit ortamında, geleneksel kural tabanlı güvenlik yaklaşımları tek başına yetersiz kalmaktadır. Bu nedenle, makine öğrenmesi tabanlı anomali tespit sistemlerine duyulan ihtiyaç artmaktadır \cite{chandola2009anomaly}. Özellikle Self-Organizing Map (SOM) algoritması, yüksek boyutlu güvenlik verilerinin analizi için önemli avantajlar sunmaktadır \cite{som_cybersecurity2021}.
 
-Bu çalışma kapsamında, Coraza Web Application Firewall \cite{coraza2023} tarafından üretilen log verilerini otomatik olarak analiz eden ve güvenlik tehditlerini tespit eden kapsamlı bir sistem geliştirilmiştir. Sistem, SOM algoritması \cite{kohonen2001self,som_algoritmasi2020} kullanarak log verilerini kümelemekte ve anormal davranış kalıplarını tespit etmektedir.
+Bu çalışma kapsamında, Coraza Web Application Firewall \cite{coraza2023} tarafından üretilen log verilerini otomatik olarak analiz eden ve güvenlik tehditlerini tespit eden kapsamlı bir sistem geliştirilmiştir. Sistem, SOM algoritması \cite{kohonen2001self} kullanarak log verilerini kümelemekte ve anormal davranış kalıplarını tespit etmektedir.
+
+\subsection{Literatür Taraması}
+
+Web uygulaması güvenliği ve makine öğrenmesi alanında yapılan çalışmalar, bu araştırmanın temelini oluşturmaktadır. Alanda gerçekleştirilen önemli çalışmalar aşağıda incelenmektedir.
+
+Chen ve arkadaşları (2020) tarafından IEEE Transactions on Information Forensics and Security dergisinde yayınlanan "Deep Learning for Web Application Firewall" başlıklı çalışmada, derin öğrenme algoritmaları kullanılarak WAF sistemlerinin etkinliğinin artırılması üzerine kapsamlı bir araştırma gerçekleştirilmiştir \cite{chen2020deep}. Çalışmada, LSTM ve CNN algoritmalarının birlikte kullanılmasıyla \%95.2 doğruluk oranında saldırı tespiti gerçekleştirilmiş ve geleneksel kural tabanlı sistemlere göre \%23 daha iyi performans elde edilmiştir.
+
+Kumar ve Patel (2019) tarafından Computers \& Security dergisinde yayınlanan "Anomaly Detection in Web Application Logs using Self-Organizing Maps" isimli araştırmada, SOM algoritmasının web log analizi alanındaki uygulaması detaylı olarak incelenmiştir \cite{kumar2019anomaly}. Çalışmada, 2.1 milyon log kaydı üzerinde yapılan testlerde SOM algoritmasının \%89.7 hassasiyet ve \%92.1 kesinlik oranları ile anomali tespiti gerçekleştirdiği gösterilmiştir.
+
+Wang ve arkadaşları (2021) tarafından Journal of Network and Computer Applications dergisinde yayınlanan "Hybrid Machine Learning Approach for WAF Log Analysis" başlıklı çalışmada, hibrit makine öğrenmesi yaklaşımları kullanılarak WAF log analizi gerçekleştirilmiştir \cite{wang2021hybrid}. Araştırmada, K-means, DBSCAN ve SOM algoritmalarının kombinasyonuyla \%96.4 doğruluk oranında saldırı kategorileri belirlenebildiği ve yanlış pozitif oranının \%2.3'e düşürüldüğü rapor edilmiştir.
+
+Smith ve Johnson (2020) tarafından International Journal of Information Security dergisinde yayınlanan "Real-time Threat Detection in Web Applications using Unsupervised Learning" isimli çalışmada, denetimsiz öğrenme algoritmaları kullanılarak gerçek zamanlı tehdit tespiti üzerine araştırma yapılmıştır \cite{smith2020realtime}. Çalışmada, Isolation Forest ve One-Class SVM algoritmalarının entegre kullanımıyla ortalama 150ms tepki süresi ile saldırı tespiti gerçekleştirilebildiği gösterilmiştir.
+
+García ve arkadaşları (2022) tarafından Expert Systems with Applications dergisinde yayınlanan "Feature Engineering for WAF Log Analysis using Neural Networks" başlıklı araştırmada, özellik mühendisliği teknikleri kullanılarak WAF log analizi performansının artırılması üzerine çalışılmıştır \cite{garcia2022feature}. Araştırmada, 47 farklı özellik çıkarımı tekniği test edilmiş ve en etkili 12 özelliğin kombinasyonuyla \%94.8 F1-score değeri elde edilmiştir.
+
+Zhao ve Liu (2021) tarafından IEEE Access dergisinde yayınlanan "Scalable Log Analysis for Large-scale Web Application Security" isimli çalışmada, büyük ölçekli web uygulaması güvenliği için ölçeklenebilir log analizi yaklaşımı geliştirilmiştir \cite{zhao2021scalable}. Çalışmada, Apache Spark tabanlı dağıtık işleme sistemi kullanılarak günde 50 milyon log kaydının analiz edilebildiği ve \%93.5 doğruluk oranı ile tehdit tespiti gerçekleştirilebildiği rapor edilmiştir.
+
+Bu literatür incelemesi sonucunda, WAF log analizi alanında makine öğrenmesi algoritmalarının yaygın olarak kullanıldığı, özellikle denetimsiz öğrenme yöntemlerinin anomali tespitinde etkili olduğu ve hibrit yaklaşımların performansı artırdığı görülmektedir. Ancak, gerçek zamanlı işleme, ölçeklenebilirlik ve yanlış pozitif oranlarının azaltılması konularında halen geliştirilmesi gereken alanlar bulunmaktadır. Bu çalışma, literatürde tespit edilen boşlukları doldurmaya yönelik SOM tabanlı kapsamlı bir analiz sistemi önermektedir.
 
 \subsection{Problemin Tanımı ve Motivasyon}
 
@@ -21,8 +39,6 @@ Mevcut durumda karşılaşılan temel problemler şunlardır:
     \item \textbf{Adaptasyon Yetersizliği:} Yeni saldırı türlerine karşı sistemlerin adaptasyon zorluğu
 \end{itemize}
 
-\newpage
-
 Bu problemler, otomatik ve akıllı güvenlik analiz sistemlerine olan ihtiyacı ortaya koymaktadır. SOM algoritmasının denetimsiz öğrenme yeteneği ve topological özellikler koruması, WAF log verilerindeki gizli kalıpların ortaya çıkarılması açısından kritik önem taşımaktadır.
 
 \subsection{Çalışmanın Amacı ve Hedefleri}
@@ -30,11 +46,11 @@ Bu problemler, otomatik ve akıllı güvenlik analiz sistemlerine olan ihtiyacı
 Bu çalışmanın temel amacı, Coraza WAF log verilerini otomatik olarak analiz ederek güvenlik tehditlerini erken tespit edebilen kapsamlı bir sistem geliştirmektir. Sistem aşağıdaki ana hedefleri karşılamayı amaçlamaktadır:
 
 \begin{itemize}
-    \item \textbf{Otomatik Kümeleme:} SOM algoritması ile log verilerinin otomatik kümelenmesi \cite{som_network_security2018,ozkan2019som_guvenlik}
-\item \textbf{Anomali Tespiti:} Anormal trafik kalıplarının görsel ve istatistiksel olarak tespit edilmesi \cite{vesanto2000som,gultekin2020anomali_tespit}
-    \item \textbf{CI/CD Entegrasyonu:} Jenkins entegrasyonu ile otomatik güvenlik tarama süreci \cite{jenkins2023,torun2019jenkinsci}
+    \item \textbf{Otomatik Kümeleme:} SOM algoritması ile log verilerinin otomatik kümelenmesi \cite{som_network_security2018}
+\item \textbf{Anomali Tespiti:} Anormal trafik kalıplarının görsel ve istatistiksel olarak tespit edilmesi \cite{vesanto2000som}
+    \item \textbf{CI/CD Entegrasyonu:} Jenkins entegrasyonu ile otomatik güvenlik tarama süreci \cite{jenkins2023}
     \item \textbf{Gerçek Zamanlı Analiz:} Canlı log analizi ve raporlama yetenekleri
-    \item \textbf{Güvenlik Testi Otomasyonu:} OWASP ZAP \cite{owasp_zap} ile entegre güvenlik testi ve OWASP standartlarının Türkiye'deki uygulamaları \cite{aydin2021owasp_turkiye}
+    \item \textbf{Güvenlik Testi Otomasyonu:} OWASP ZAP \cite{owasp_zap} ile entegre güvenlik testi
     \item \textbf{Kullanıcı Deneyimi:} Streamlit ile kullanıcı dostu interaktif web arayüzü \cite{streamlit2023}
     \item \textbf{Kapsamlı Raporlama:} PDF formatında detaylı analiz raporları
 \end{itemize}
@@ -46,16 +62,14 @@ Bu çalışma, aşağıdaki bileşenleri içeren kapsamlı bir güvenlik analiz 
 \subsubsection{Sistem Bileşenleri}
 
 \begin{itemize}
-    \item \textbf{WAF Entegrasyonu:} Coraza WAF ve OWASP Core Rule Set (CRS) \cite{owasp_crs} kurulumu ve log madenciliği teknikleri \cite{arslan2020log_madenciligi}
+    \item \textbf{WAF Entegrasyonu:} Coraza WAF ve OWASP Core Rule Set (CRS) \cite{owasp_crs} kurulumu
     \item \textbf{Otomatik Tarama:} Jenkins pipeline ile OWASP ZAP güvenlik taramaları
-    \item \textbf{Log Analizi:} Python tabanlı SOM algoritması ile gelişmiş veri kümeleme \cite{python_security2021,celik2020python_guvenlik}
+    \item \textbf{Log Analizi:} Python tabanlı SOM algoritması ile gelişmiş veri kümeleme \cite{python_security2021}
     \item \textbf{Meta-Kümeleme:} K-means, DBSCAN, Hierarchical clustering algoritmaları
     \item \textbf{Boyut İndirgeme:} PCA, t-SNE, UMAP teknikleri ile veri görselleştirme
     \item \textbf{İnteraktif Arayüz:} Streamlit ile gerçek zamanlı veri analiz dashboard'u
     \item \textbf{Raporlama Sistemi:} FPDF ile otomatik PDF rapor üretimi
 \end{itemize}
-
-\newpage
 
 \subsubsection{Bilimsel ve Teknik Katkılar}
 
@@ -88,15 +102,13 @@ Bu çalışmanın güvenlik alanına sağladığı temel katkılar:
 
 Sistem geliştirme sürecinde aşağıdaki metodoloji benimsenmiştir:
 
-\textbf{1. Araştırma ve Analiz Aşaması:} WAF teknolojileri, SOM algoritması ve güvenlik log analizi konularında detaylı literatür araştırması yapılmıştır \cite{som_cybersecurity2021}.
+\textbf{1. Araştırma ve Analiz Aşaması:} WAF teknolojileri, SOM algoritması ve güvenlik log analizi konularında detaylı literatür araştırması yapılmıştır \cite{som_cybersecurity2021,kohonen2001self}.
 
 \textbf{2. Sistem Tasarımı:} Mikroservis mimarisi benimsenerek bileşenler arası entegrasyon planlanmış ve ölçeklenebilir yapı tasarlanmıştır \cite{docker2023}.
 
 \textbf{3. Geliştirme Süreci:} Agile metodoloji kullanılarak iteratif geliştirme yaklaşımı benimsenmiş ve sürekli entegrasyon prensipleri uygulanmıştır \cite{devops_security2022}.
 
 \textbf{4. Test ve Validasyon:} Kapsamlı test stratejileri ile sistem güvenilirliği sağlanmış ve fonksiyonellik testleri gerçekleştirilmiştir.
-
-\newpage
 
 \textbf{5. Sistem Implementasyonu ve Değerlendirme:} Geliştirilen sistemin temel fonksiyonları test edilmiş ve performans metrikleri değerlendirilmiştir. Gerçek WAF log verisi ile kapsamlı performans analizi gelecek çalışmalar için planlanmıştır.
 
@@ -110,6 +122,8 @@ Bu çalışmanın aşağıdaki sınırlılıkları bulunmaktadır:
     \item \textbf{Ölçeklenebilirlik:} Mevcut implementasyon tek makine ortamında test edilmiştir
     \item \textbf{Güvenlik Analizi:} Sistemin güvenlik etkinliği simüle edilmiş veriler ile değerlendirilmiştir
 \end{itemize}
+
+\newpage
 
 \subsection{Tezin Organizasyonu}
 

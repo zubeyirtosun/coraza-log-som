@@ -4,7 +4,7 @@
 \large \textbf{ÖZET}
 \end{center}
 
-Bu çalışmada, Coraza WAF log kayıtlarını SOM algoritması ile analiz ederek anormal davranış kalıplarını tespit eden ve güvenlik olaylarını görselleştiren bir sistem geliştirilmiştir. Sistem, Jenkins entegrasyonu ile sürekli entegrasyon/sürekli dağıtım (CI/CD) pipeline'ı üzerinde çalışmakta ve OWASP ZAP (Zed Attack Proxy) ile otomatik güvenlik taramalarını gerçekleştirmektedir.
+Bu çalışmada, Coraza WAF log kayıtlarını SOM algoritması ile analiz ederek anormal davranış kalıplarını tespit eden ve güvenlik olaylarını görselleştiren bir sistem geliştirilmiştir. Sistem, WAF tarafından engellenen saldırıları analiz ederek anomali tespiti ve görselleştirme yapmaktadır. Sistem, Jenkins entegrasyonu ile sürekli entegrasyon/sürekli dağıtım (CI/CD) pipeline'ı üzerinde çalışmakta ve OWASP ZAP (Zed Attack Proxy) ile otomatik güvenlik taramalarını gerçekleştirmektedir.
 
 Geliştirilen sistemin temelinde Self-Organizing Map (SOM) algoritması kullanılarak log verilerinin kümelenmesi ve anormal davranışların tespiti yer almaktadır. SOM, yüksek boyutlu log verilerini iki boyutlu bir haritada görselleştirerek benzer davranış kalıplarını gruplandırmakta ve potansiyel güvenlik tehditlerini vurgulamaktadır. Sistem, adaptif grid boyutlandırma formülü ($\sqrt{5 \cdot \sqrt{n}}$) ile otomatik parametre optimizasyonu sağlamaktadır.
 
@@ -19,7 +19,7 @@ Geliştirilen sistem, 2,000 kayıtlık gerçek ZAP Scanner güvenlik test verisi
 \large \textbf{ABSTRACT}
 \end{center}
 
-In this study, a system has been developed that analyzes Coraza WAF log records using the SOM algorithm to detect abnormal behavior patterns and visualize security events. The system operates on a continuous integration/continuous deployment (CI/CD) pipeline with Jenkins integration and performs automated security scans using OWASP ZAP (Zed Attack Proxy).
+In this study, a system has been developed that analyzes Coraza WAF log records using the SOM algorithm to detect abnormal behavior patterns and visualize security events. The system analyzes attacks blocked by the WAF to perform anomaly detection and visualization. The system operates on a continuous integration/continuous deployment (CI/CD) pipeline with Jenkins integration and performs automated security scans using OWASP ZAP (Zed Attack Proxy).
 
 The core of the developed system is based on clustering log data and detecting anomalous behaviors using the Self-Organizing Map (SOM) algorithm. SOM visualizes high-dimensional log data on a two-dimensional map, grouping similar behavior patterns and highlighting potential security threats. The system provides automatic parameter optimization with adaptive grid sizing formula ($\sqrt{5 \cdot \sqrt{n}}$).
 

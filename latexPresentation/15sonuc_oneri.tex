@@ -2,6 +2,8 @@
 
 Bu çalışmada, Coraza Web Application Firewall log verilerini Self-Organizing Map (SOM) algoritması ile analiz ederek güvenlik tehditlerini otomatik olarak tespit eden kapsamlı bir sistem geliştirilmiştir. Sistem, MiniSom kütüphanesi, Streamlit web çerçevesi ve çeşitli Python veri analizi araçları ile birlikte çalışan bütüncül bir güvenlik analiz platformu sunmaktadır. Türkiye'deki WAF kullanımı ve güvenlik durumu \cite{koc2022waf_turkiye,tbd_rapor2022} göz önünde bulundurularak yerel ihtiyaçlara uygun bir çözüm geliştirilmiştir.
 
+Sistem geliştirme ve SOM algoritması eğitimi, AMD Ryzen 7 7435HS (8 core/16 thread) işlemcili, 16GB DDR5 RAM ve 512GB NVMe SSD kapasiteli Pop!\_OS 22.04 LTS (Linux Kernel 6.12.10) işletim sistemi çalıştıran masaüstü bilgisayarda gerçekleştirilmiştir. Bu donanım yapılandırması, 2000 kayıtlık veri setleri için etkili performans sağlamış ve interaktif analiz için yeterli işlem gücü sunmuştur.
+
 \subsection{Temel Başarılar}
 
 Gerçekleştirilen geliştirme çalışmaları sonucunda aşağıdaki temel başarılara ulaşılmıştır:
@@ -31,7 +33,6 @@ Geliştirilen sistem, aşağıdaki temel fonksiyonları başarıyla yerine getir
     \item \textbf{Modüler Mimari:} Bağımsız modüllerle genişletilebilir sistem tasarımı
 \end{enumerate}
 
-\newpage
 
 \subsection{Bilimsel Katkılar}
 
@@ -63,6 +64,8 @@ Geliştirilen sistem aşağıdaki temel yetenekleri sunmaktadır:
     \item Zaman damgası işleme ve özellik çıkarımı
 \end{itemize}
 
+\newpage
+
 \subsubsection{Analiz Yetenekleri}
 
 \begin{itemize}
@@ -73,7 +76,6 @@ Geliştirilen sistem aşağıdaki temel yetenekleri sunmaktadır:
     \item İnteraktif görselleştirme üretimi
 \end{itemize}
 
-\newpage
 
 \subsection{Sistem Sınırlılıkları}
 
@@ -103,6 +105,62 @@ Geliştirme sürecinde tespit edilen temel sınırlılıklar:
     \item \textbf{Manuel Parametre Ayarlama:} Optimal performans için uzman müdahalesi
     
     \item \textbf{Sınırlı Hata Kurtarma:} Sistem hatalarında kısıtlı recovery mekanizması
+\end{enumerate}
+
+\subsection{Gelecek Çalışmalar ve Öneriler}
+
+Bu çalışmada geliştirilen sistemin daha da iyileştirilmesi ve pratik uygulamalarda daha etkili kullanılabilmesi için aşağıdaki gelecek çalışmalar ve geliştirmeler önerilmektedir:
+
+\subsubsection{Teknik Geliştirmeler}
+
+\begin{enumerate}
+    \item \textbf{Gerçek Zamanlı İşleme Kapasitesi:} Apache Kafka veya Apache Storm gibi akış işleme teknolojileri entegre edilerek sistemin gerçek zamanlı log analizi yapabilme yeteneği geliştirilebilir.
+    
+    \item \textbf{Dağıtık Sistem Mimarisi:} Apache Spark ve Hadoop ekosistemi kullanılarak büyük veri setleri için ölçeklenebilir dağıtık işleme altyapısı oluşturulabilir.
+    
+    \item \textbf{Otomatik Parametre Optimizasyonu:} Genetik algoritma veya Bayesian optimizasyon teknikleri kullanılarak SOM parametrelerinin otomatik olarak en iyilenmesi sağlanabilir.
+    
+    \item \textbf{Çoklu WAF Desteği:} ModSecurity, Cloudflare, AWS WAF gibi farklı WAF sistemlerinden gelen log formatlarının desteklenmesi için adaptör modülleri geliştirilebilir.
+\end{enumerate}
+
+\subsubsection{Algoritmik İyileştirmeler}
+
+\begin{enumerate}
+    \item \textbf{Hibrit Öğrenme Yaklaşımları:} Supervised ve unsupervised öğrenme algoritmalarının kombinasyonu ile daha doğru tehdit sınıflandırması gerçekleştirilebilir.
+    
+    \item \textbf{Temporal Analiz:} Zaman serisi analizi teknikleri entegre edilerek saldırı kalıplarının zamansal gelişimi izlenebilir.
+    
+    \item \textbf{Ensemble Metodları:} Multiple SOM ağlarının birlikte kullanılması ile daha robust anomali tespiti sağlanabilir.
+    
+    \item \textbf{Adaptive Learning:} Sistemin yeni saldırı türlerine otomatik olarak adapte olabilme yeteneği geliştirilebilir.
+\end{enumerate}
+
+\subsubsection{Bu Alanda Çalışmak İsteyenler İçin Öneriler}
+
+\begin{enumerate}
+    \item \textbf{Temel Bilgiler:} Makine öğrenmesi algoritmaları, özellikle denetimsiz öğrenme yöntemleri ve istatistiksel analiz konularında sağlam bir temel oluşturun.
+    
+    \item \textbf{Güvenlik Uzmanlığı:} Web uygulaması güvenliği, OWASP Top 10, WAF teknolojileri ve log analizi konularında bilginizi artırın.
+    
+    \item \textbf{Programlama Becerileri:} Python, R veya Scala gibi veri analizi odaklı programlama dillerinde uzmanlaşın ve büyük veri işleme araçlarını öğrenin.
+    
+    \item \textbf{Pratik Deneyim:} Açık kaynak WAF sistemleri ve güvenlik araçları ile hands-on deneyim kazanın, kendi test ortamlarınızı kurun.
+    
+    \item \textbf{Sürekli Öğrenme:} Siber güvenlik tehditleri hızla evrimleşmektedir, güncel saldırı türleri ve savunma teknikleri hakkında bilgi sahibi olun.
+\end{enumerate}
+
+\newpage
+
+\subsubsection{Endüstriyel Uygulamalar}
+
+\begin{enumerate}
+    \item \textbf{SOC Entegrasyonu:} Security Operations Center (SOC) sistemleri ile entegrasyon için API geliştirilmesi
+    
+    \item \textbf{SIEM Uyumluluğu:} Splunk, ElasticSearch, IBM QRadar gibi SIEM çözümleri ile uyumluluk sağlanması
+    
+    \item \textbf{Compliance Raporlaması:} ISO 27001, PCI DSS gibi standartlara uygun otomatik rapor üretimi
+    
+    \item \textbf{Mobil Uygulama:} Güvenlik analistleri için mobil dashboard ve alarm sistemi geliştirilmesi
 \end{enumerate}
 
 \subsection{Sonuç}
