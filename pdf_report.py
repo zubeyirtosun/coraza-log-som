@@ -15,39 +15,87 @@ from PIL import Image
 
 class PDF(FPDF):
     """
-    Temel PDF sınıfı - özel font kullanmadan çalışır
+    Temel PDF sınıfı - Türkçe karakter desteği ile
     """
     def __init__(self):
         super().__init__(orientation='P', unit='mm', format='A4')
-        # Varsayılan fontları kullan (DejaVu yerine)
+        
+        # Türkçe karakter desteği için DejaVu fontunu ekle
+        try:
+            # DejaVu Sans font dosyalarının yolları
+            dejavu_path = os.path.join(os.getcwd(), 'static_fonts', 'DejaVuSans.ttf')
+            dejavu_bold_path = os.path.join(os.getcwd(), 'static_fonts', 'DejaVuSans-Bold.ttf')
+            dejavu_italic_path = os.path.join(os.getcwd(), 'static_fonts', 'DejaVuSans-Oblique.ttf')
+            
+            # Font dosyalarının varlığını kontrol et
+            if os.path.exists(dejavu_path):
+                self.add_font('DejaVu', '', dejavu_path, uni=True)
+                self.font_family = 'DejaVu'
+                st.info("✅ DejaVu Sans font yüklendi (Türkçe karakter desteği)")
+            else:
+                # DejaVu bulunamazsa Arial kullan ve Türkçe karakterleri temizle
+                self.font_family = 'Arial'
+                st.warning("⚠️ DejaVu font bulunamadı, Arial kullanılıyor (Türkçe karakterler dönüştürülecek)")
+                
+            if os.path.exists(dejavu_bold_path):
+                self.add_font('DejaVu', 'B', dejavu_bold_path, uni=True)
+                
+            if os.path.exists(dejavu_italic_path):
+                self.add_font('DejaVu', 'I', dejavu_italic_path, uni=True)
+                
+        except Exception as e:
+            self.font_family = 'Arial'
+            st.warning(f"Font yükleme hatası: {str(e)}, Arial kullanılıyor")
+        
         self.add_page()
         # Daha yüksek çözünürlük için dpi ayarı
         plt.rcParams['figure.dpi'] = 150
         plt.rcParams['savefig.dpi'] = 150
-        st.info("PDF oluşturucu başlatıldı (varsayılan fontlar kullanılıyor)")
 
     def header(self):
         # Başlık
-        self.set_font('Arial', 'B', 15)
-        self.cell(0, 10, 'SOM ve Meta Kumeleme Analizi Raporu', 0, 1, 'C')
+        self.set_font(self.font_family, 'B', 15)
+        title = self._clean_text('SOM ve Meta Kümeleme Analizi Raporu')
+        self.cell(0, 10, title, 0, 1, 'C')
         self.ln(10)
         
     def footer(self):
         # Sayfa numarası
         self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Sayfa {self.page_no()}', 0, 0, 'C')
+        self.set_font(self.font_family, 'I', 8)
+        page_text = self._clean_text(f'Sayfa {self.page_no()}')
+        self.cell(0, 10, page_text, 0, 0, 'C')
         
     def chapter_title(self, title):
-        self.set_font('Arial', 'B', 14)
+        self.set_font(self.font_family, 'B', 14)
         self.ln(5)
-        self.cell(0, 10, title, 0, 1, 'L')
+        clean_title = self._clean_text(title)
+        self.cell(0, 10, clean_title, 0, 1, 'L')
         self.ln(5)
         
     def chapter_body(self, body):
-        self.set_font('Arial', '', 12)
-        self.multi_cell(0, 5, body)
+        self.set_font(self.font_family, '', 12)
+        clean_body = self._clean_text(body)
+        self.multi_cell(0, 5, clean_body)
         self.ln()
+    
+    def _clean_text(self, text):
+        """Türkçe karakterleri ASCII karşılıklarıyla değiştirir (eğer DejaVu font yoksa)"""
+        if self.font_family != 'Arial':
+            # DejaVu font varsa metin temizleme yapmaya gerek yok
+            return text
+            
+        # Türkçe karakter dönüştürme tablosu
+        turkish_map = {
+            'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G',
+            'ü': 'u', 'Ü': 'U', 'ş': 's', 'Ş': 'S',
+            'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C'
+        }
+        
+        for turkish, ascii_char in turkish_map.items():
+            text = text.replace(turkish, ascii_char)
+        
+        return text
     
     def add_image(self, img_data, x=None, y=None, w=190, h=None):
         """Görseli PDF'e ekler, otomatik yükseklik hesaplaması yapabilir"""
@@ -93,16 +141,18 @@ class PDF(FPDF):
         
         # Başlıklar varsa ekle
         if headers:
-            self.set_font('Arial', 'B', 10)
+            self.set_font(self.font_family, 'B', 10)
             for header in headers:
-                self.cell(col_width, 7, str(header), 1, 0, 'C')
+                clean_header = self._clean_text(str(header))
+                self.cell(col_width, 7, clean_header, 1, 0, 'C')
             self.ln()
         
         # Verileri ekle
-        self.set_font('Arial', '', 10)
+        self.set_font(self.font_family, '', 10)
         for row in data:
             for item in row:
-                self.cell(col_width, 7, str(item), 1, 0, 'C')
+                clean_item = self._clean_text(str(item))
+                self.cell(col_width, 7, clean_item, 1, 0, 'C')
             self.ln()
         self.ln(5)
 
@@ -462,13 +512,14 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
                         else:
                             st.warning("Meta küme dağılımı dosyası oluşturulamadı.")
                         
-                        # Meta küme bazında log sayısı
-                        cluster_counts = st.session_state.df_meta['meta_cluster'].value_counts().sort_index()
+                        # Meta küme bazında log sayısı - web arayüzü ile aynı sıralama
+                        cluster_counts = st.session_state.df_meta['meta_cluster'].value_counts().reset_index()
+                        cluster_counts.columns = ['Meta Küme', 'Log Sayısı']
                         
                         plt.figure(figsize=(10, 6))
                         bars = plt.bar(
-                            cluster_counts.index, 
-                            cluster_counts.values,
+                            cluster_counts['Meta Küme'], 
+                            cluster_counts['Log Sayısı'],
                             color=plt.cm.viridis(np.linspace(0, 1, len(cluster_counts))),
                             alpha=0.8,
                             edgecolor='black',
@@ -490,7 +541,7 @@ def create_pdf_report(title="SOM ve Meta Kumeleme Analizi Raporu", include_basic
                         plt.title('Meta Kume Bazinda Log Sayisi', fontsize=16, pad=20)
                         plt.xlabel('Meta Kume', fontsize=12)
                         plt.ylabel('Log Sayisi', fontsize=12)
-                        plt.xticks(cluster_counts.index)
+                        plt.xticks(cluster_counts['Meta Küme'])
                         plt.grid(axis='y', alpha=0.3)
                         plt.tight_layout()
                         

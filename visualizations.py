@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import io
 import base64
+import matplotlib.pyplot as plt
 
 # BytesIO görsellerini doğrudan StreamLit'te göstermek için
 def show_matplotlib_figure(fig_buffer):
@@ -411,7 +412,7 @@ def handle_meta_clustering():
         ve yüksek engellenmiş istek oranıyla dikkat çekebilir.
         """)
     
-    n_clusters = st.slider("Meta Küme Sayısı", 2, 10, 5)
+    n_clusters = st.slider("Meta Küme Sayısı", 2, 25, 5)
     
     # KMeans sınıfını sadece bir kez import et
     from sklearn.cluster import KMeans
@@ -556,6 +557,137 @@ def handle_meta_clustering():
             title='Meta Küme Bazında Log Sayısı'
         )
         st.plotly_chart(fig)
+        
+        # Gelişmiş Görselleştirme Seçenekleri
+        st.markdown("---")
+        st.markdown("### 🎨 Gelişmiş Görselleştirme Seçenekleri")
+        
+        visualization_choice = st.selectbox(
+            "Görselleştirme Türü Seçin (Temel Analizler)",
+            [
+                "Standart Meta Kümeleme (Yukarıdaki)",
+                "1. Karar Sınırları",
+                "2. Büyük Noktalar + Kalın Kenarlık", 
+                "3. Küme Başına Ayrı Subplotlar",
+                "4. Etiket Farkları Analizi",
+                "5. Konveks Hull Sınırları",
+                "6. Kapsamlı Karşılaştırma (Hepsi)"
+            ],
+            help="Küme sınırlarını ve farklarını görmek için farklı görselleştirme yöntemleri",
+            key="viz_choice_basic"
+        )
+        
+        if visualization_choice != "Standart Meta Kümeleme (Yukarıdaki)":
+            # Advanced visualizations import
+            try:
+                from advanced_visualizations import (
+                    create_decision_boundary_plot,
+                    create_large_points_plot, 
+                    create_separate_clusters_plot,
+                    create_label_differences_plot,
+                    create_convex_hull_plot,
+                    create_comprehensive_comparison_plot
+                )
+                
+                # Veri hazırlık - Temel analizler için SOM ve Meta kümeleme karşılaştırması
+                if 'X' in st.session_state and st.session_state.X is not None:
+                    X_viz = st.session_state.X
+                    
+                    # SOM etiketleri (BMU bazında)
+                    if 'bmu_x' in df_meta.columns and 'bmu_y' in df_meta.columns:
+                        grid_size = st.session_state.som.get_weights().shape[0]
+                        som_labels_viz = df_meta['bmu_x'].values * grid_size + df_meta['bmu_y'].values
+                    else:
+                        st.error("BMU koordinatları bulunamadı!")
+                        return
+                    
+                    # Meta kümeleme etiketleri
+                    meta_labels_viz = df_meta['meta_cluster'].values
+                    
+                    # NaN kontrol ve temizleme
+                    if np.any(np.isnan(X_viz)) or np.any(np.isinf(X_viz)):
+                        finite_mask = np.all(np.isfinite(X_viz), axis=1)
+                        X_viz = X_viz[finite_mask]
+                        som_labels_viz = som_labels_viz[finite_mask]
+                        meta_labels_viz = meta_labels_viz[finite_mask]
+                    
+                    # Görselleştirme seçimi
+                    if visualization_choice == "1. Karar Sınırları":
+                        st.markdown("#### 🔲 Karar Sınırları Görselleştirmesi")
+                        st.info("Meta kümeleme algoritmasının karar bölgelerini arka plan renkleri ile gösterir")
+                        
+                        fig = create_decision_boundary_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                    
+                    elif visualization_choice == "2. Büyük Noktalar + Kalın Kenarlık":
+                        st.markdown("#### 🔵 Büyük Noktalar Görselleştirmesi")
+                        st.info("Daha net küme aidiyeti gösterimi için büyük noktalar ve kalın kenarlıklar")
+                        
+                        fig = create_large_points_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                    
+                    elif visualization_choice == "3. Küme Başına Ayrı Subplotlar":
+                        st.markdown("#### 📊 Küme Başına Ayrı Görselleştirme")
+                        st.info("Her kümenin içsel yapısını ayrı grafikte gösterir")
+                        
+                        fig = create_separate_clusters_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                    
+                    elif visualization_choice == "4. Etiket Farkları Analizi":
+                        st.markdown("#### 🔍 Etiket Farkları Analizi")
+                        st.info("SOM ve Meta kümeleme arasında farklı kümeye atanan logları vurgular")
+                        
+                        fig = create_label_differences_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                    
+                    elif visualization_choice == "5. Konveks Hull Sınırları":
+                        st.markdown("#### 🔷 Konveks Hull Sınırları")
+                        st.info("Küme sınırlarını çizgilerle gösterir")
+                        
+                        fig = create_convex_hull_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                    
+                    elif visualization_choice == "6. Kapsamlı Karşılaştırma (Hepsi)":
+                        st.markdown("#### 🎯 Kapsamlı Karşılaştırma")
+                        st.info("Tüm görselleştirme yöntemlerini tek seferde gösterir")
+                        
+                        fig = create_comprehensive_comparison_plot(X_viz, som_labels_viz, meta_labels_viz)
+                        if fig:
+                            st.pyplot(fig)
+                            
+                        # İlave analiz bilgileri
+                        with st.expander("Detaylı Analiz Bilgileri"):
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                st.metric("Toplam Log Sayısı", len(som_labels_viz))
+                                st.metric("SOM Küme Sayısı", len(np.unique(som_labels_viz)))
+                                
+                            with col2:
+                                st.metric("Meta Küme Sayısı", len(np.unique(meta_labels_viz)))
+                                same_labels = np.sum(som_labels_viz == meta_labels_viz)
+                                st.metric("Etiket Benzerliği", f"{same_labels/len(som_labels_viz):.1%}")
+                                
+                            with col3:
+                                som_std = np.std(pd.Series(som_labels_viz).value_counts())
+                                meta_std = np.std(pd.Series(meta_labels_viz).value_counts())
+                                st.metric("SOM Küme Boyutu Std", f"{som_std:.1f}")
+                                st.metric("Meta Küme Boyutu Std", f"{meta_std:.1f}")
+                else:
+                    st.warning("X veri seti bulunamadı. Önce SOM eğitimi yapılmalı.")
+            
+            except ImportError as e:
+                st.error(f"Gelişmiş görselleştirme modülü yüklenemedi: {str(e)}")
+                st.info("advanced_visualizations.py dosyasının mevcut olduğundan emin olun")
+            
+            except Exception as e:
+                st.error(f"Görselleştirme hatası: {str(e)}")
+                st.info("Standart meta kümelemeyi kullanın")
     
     except Exception as e:
         st.error(f"Meta kümeleme sırasında bir hata oluştu: {str(e)}")

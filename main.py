@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import pandas as pd
 import numpy as np
-from data_processing import preprocess_data, handle_missing_data, train_som, fix_unhashable_columns, preprocess_data_interactive
+from data_processing import preprocess_data, handle_missing_data, train_som, fix_unhashable_columns
 from visualizations import (show_summary_table, show_visualizations, handle_meta_clustering, 
                            handle_neuron_details, handle_anomaly_detection, show_som_validation, 
                            show_meta_clustering_validation, show_advanced_analysis)
@@ -686,7 +686,7 @@ st.markdown("---")
 
 # Veri yükleme bölümü
 st.markdown("### Veri Yükleme")
-st.markdown("Analizi başlatmak için **Coraza WAF** log dosyanızı yükleyin veya örnek veri kullanın.")
+st.markdown("Analizi başlatmak için **Coraza WAF** log dosyanızı yükleyin.")
 
 st.info("""
 **📋 Coraza Log Format Gereksinimleri:**
@@ -696,42 +696,16 @@ st.info("""
 - **Örnek:** `transaction.id`, `transaction.client_ip`, `rules.matched` vb.
 """, icon="ℹ️")
 
-# Yükleme seçenekleri
-upload_col1, upload_col2 = st.columns([1, 1])
-
-with upload_col1:
-    st.markdown("""
-        <div class="upload-section">
-            <h4>📤 Kendi Dosyanızı Yükleyin</h4>
-            <p>JSON formatında WAF log dosyası</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-with upload_col2:
-    st.markdown("""
-        <div class="upload-section">
-            <h4>🧪 Örnek Veri Kullanın</h4>
-            <p>Hemen test etmek için hazır veri</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-upload_method = st.radio(
-    "Veri yükleme yöntemi seçin:",
-    ["📤 Dosya Yükle", "🧪 Örnek Veri Kullan"],
-    horizontal=True,
-    label_visibility="visible",
-    key="upload_method_radio"
-)
-
-if upload_method == "📤 Dosya Yükle":
-    # Dosya formatı açıklaması
-    with st.expander("📋 Desteklenen JSON Formatları", expanded=False):
+# Dosya formatı açıklaması
+with st.expander("📋 Desteklenen JSON Formatları", expanded=False):
         st.markdown("""
         <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107;">
             <h4 style="margin: 0; color: #856404;">⚠️ Önemli Format Bilgileri</h4>
             <p style="margin: 0.5rem 0 0 0;">Dosyanız aşağıdaki formatlardan birinde olmalıdır:</p>
         </div>
+        """, unsafe_allow_html=True)
         
+        st.markdown("""
         ### 1️⃣ Tek Transaction Formatı:
         ```json
         {
@@ -764,107 +738,11 @@ if upload_method == "📤 Dosya Yükle":
         ```
         """)
     
-    uploaded_file = st.file_uploader(
-        "📁 Log dosyanızı seçin",
-        type=["json"],
-        help="JSON formatında WAF log dosyası yükleyin"
-    )
-    
-elif upload_method == "🧪 Örnek Veri Kullan":
-    st.info("🎯 Uygulamayı hemen test etmek için örnek WAF log verisi kullanabilirsiniz.")
-    
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        if st.button("🚀 Örnek Veri Yükle", type="primary", use_container_width=True):
-            # Örnek veri yükleme kodu aynı kalacak...
-            import io
-            import json
-            
-            example_data = [
-                {
-                    "transaction": {
-                        "client_port": 12345,
-                        "request": {
-                            "uri": "/login",
-                            "method": "POST"
-                        },
-                        "timestamp": "2023-01-01T10:20:30Z",
-                        "is_interrupted": False
-                    }
-                },
-                {
-                    "transaction": {
-                        "client_port": 67890,
-                        "request": {
-                            "uri": "/admin",
-                            "method": "GET"
-                        },
-                        "timestamp": "2023-01-01T10:25:30Z",
-                        "is_interrupted": True
-                    }
-                },
-                {
-                    "transaction": {
-                        "client_port": 54321,
-                        "request": {
-                            "uri": "/dashboard",
-                            "method": "GET"
-                        },
-                        "timestamp": "2023-01-01T10:30:30Z",
-                        "is_interrupted": False
-                    }
-                },
-                {
-                    "transaction": {
-                        "client_port": 11111,
-                        "request": {
-                            "uri": "/api/users",
-                            "method": "GET"
-                        },
-                        "timestamp": "2023-01-01T11:20:30Z",
-                        "is_interrupted": False
-                    }
-                },
-                {
-                    "transaction": {
-                        "client_port": 22222,
-                        "request": {
-                            "uri": "/login",
-                            "method": "POST"
-                        },
-                        "timestamp": "2023-01-01T12:20:30Z",
-                        "is_interrupted": True
-                    }
-                }
-            ]
-            
-            for i in range(20):
-                import random
-                import datetime
-                
-                uri_choices = ["/login", "/admin", "/dashboard", "/api/users", "/logout", "/profile", "/settings"]
-                method_choices = ["GET", "POST", "PUT", "DELETE"]
-                
-                example_data.append({
-                    "transaction": {
-                        "client_port": random.randint(10000, 60000),
-                        "request": {
-                            "uri": random.choice(uri_choices),
-                            "method": random.choice(method_choices)
-                        },
-                        "timestamp": (datetime.datetime(2023, 1, 1, 10, 0, 0) + 
-                                      datetime.timedelta(minutes=random.randint(0, 1440))).isoformat(),
-                        "is_interrupted": random.random() < 0.3
-                    }
-                })
-            
-            example_json = json.dumps(example_data)
-            uploaded_file = io.BytesIO(example_json.encode())
-            uploaded_file.name = "example_data.json"
-            
-            st.success("✅ Örnek veri başarıyla yüklendi! Analiz başlayabilir.")
-        else:
-            uploaded_file = None
+uploaded_file = st.file_uploader(
+    "📁 Log dosyanızı seçin",
+    type=["json"],
+    help="JSON formatında WAF log dosyası yükleyin"
+)
 
 # Progress göstergesi
 if uploaded_file:
