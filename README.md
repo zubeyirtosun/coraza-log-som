@@ -111,35 +111,6 @@ Doğru küme sayısını belirlemek için birden fazla metrik kullanılır:
 - **Calinski-Harabasz**: Küme içi kompaktlık ve kümeler arası ayrılık
 - **Davies-Bouldin**: Küme içi benzerlik ve küme dışı ayrılık ölçüsü
 
-## Son Güncellemeler
-
-### 2023-10-15 Yapılan İyileştirmeler
-
-1. **Veri İşleme Geliştirmeleri**:
-   - Eksik sütun hatası için veri işleme mekanizması güçlendirildi
-   - Zorunlu sütunlar için varsayılan değerlerle doldurma mekanizması eklendi
-   - Hataların daha açıklayıcı şekilde gösterilmesi sağlandı
-
-2. **Arayüz Geliştirmeleri**:
-   - Gelişmiş analiz bölümü expander'lar yerine tab'lar kullanacak şekilde yeniden tasarlandı
-   - Meta kümeleme doğrulama bölümü sekme tabanlı bir yapıya dönüştürüldü
-   - SOM Model Doğrulama bölümü daha iyi bir görsel tasarıma kavuşturuldu
-   - Nöron Detayları bölümünde yazım ve gösterim sorunları düzeltildi
-
-3. **Zaman Serisi Analizi İyileştirmeleri**:
-   - Zaman serisi analizi sorunları giderildi
-   - Saat bazlı çizelgelere ek görselleştirmeler eklendi
-   - Eksik zaman sütunları için otomatik dönüştürme eklendi
-
-4. **Optimal Küme Sayısı Analizi**:
-   - Gelişmiş analizlerde kaybolmuş olan "Optimal Küme Sayısı Analizi" bölümü yeniden düzenlendi
-   - Daha iyi görselleştirme ve daha iyi anlaşılan sonuçlar eklendi
-
-5. **Dayanıklılık İyileştirmeleri**:
-   - Çeşitli hata durumlarına karşı daha dayanıklı hale getirildi
-   - Veri tutarsızlıkları için daha fazla kontrol eklendi
-   - Base64 ve BytesIO nesneleri arasında dönüşüm için yardımcı fonksiyonlar eklendi
-
 ### Kullanım
 
 Uygulamayı çalıştırmak için:
@@ -149,7 +120,3 @@ streamlit run main.py
 ```
 
 Coraza WAF loglarınızı yükleyin ve analiz edin. İnteraktif veri önişleme, SOM kümeleme, anomali tespiti ve gelişmiş analiz özelliklerini kullanabilirsiniz.
-
-## Lisans
-
-Bu proje MIT Lisansı altında lisanslanmıştır.
